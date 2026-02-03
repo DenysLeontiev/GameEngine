@@ -5,11 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-
 #include <iostream>
+
+#include "ApplicationUI.H"
 
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -30,8 +28,10 @@ const char* vertexShader = R"glsl(
 
 layout (location = 0) in vec3 aPos;
 
+uniform mat4 model;
+
 void main() {
-	gl_Position = vec4(aPos, 1.0f);
+	gl_Position = model * vec4(aPos, 1.0f);
 }
 )glsl";
 
@@ -39,13 +39,14 @@ const char* fragmentShader = R"glsl(
 #version 330
 
 out vec4 aColor;
+uniform vec4 ourColor;
 
 void main() {
-	aColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
+	aColor = ourColor;
 }
 )glsl";
 
-void createTriangle();
+void createCube();
 void addShader(GLuint shaderProgram, const char* shaderCode, GLenum shaderType);
 void createAndCompileShader();
 
@@ -91,18 +92,32 @@ int main() {
 	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	createTriangle();
+	createCube();
 	createAndCompileShader();
 	createFramebuffer();
 
-	////Init ImGui
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(mainWindow, true);
-	const char* openGlVersion = "#version 330";
-	ImGui_ImplOpenGL3_Init(openGlVersion);
+	ApplicationUI applicationUI;
+	applicationUI.Initialize(mainWindow);
+
+	glUseProgram(shaderProgramId);
+	GLint ourColorLocation = glGetUniformLocation(shaderProgramId, "ourColor");
+
+
+	if (ourColorLocation == -1) {
+		std::cout << "Cannot find our color uniform\n";
+	}
+
+	GLint modelMatrixLocation = glGetUniformLocation(shaderProgramId, "model");
+
+	if (modelMatrixLocation == -1) {
+		std::cout << "Cannot find model matrix uniform\n";
+	}
+
+	glm::mat4 model = glm::mat4(1.0f);
+
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+	float triangleColor[] = {1.0f, 0.0f, 0.0f, 1.0f};
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 		processInput(mainWindow);
@@ -110,66 +125,41 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		applicationUI.BeginFrame();
 
-		// ImGui Window
-		ImGui::Begin("Game Engine");
+		 // Draw ImGui windows first to get viewport size
+		applicationUI.DrawFramebuffer(textureId);
+		applicationUI.DrawEditorWindow(triangleColor);
 
-		const float windowWidth = ImGui::GetContentRegionAvail().x;
-		const float windowHeight = ImGui::GetContentRegionAvail().y;
-
-		// Render to framebuffer FIRST (before using the texture in ImGui)
+		// Render to framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		rescaleFramebuffer(windowWidth, windowHeight);
-		glViewport(0, 0, static_cast<GLsizei>(windowWidth), static_cast<GLsizei>(windowHeight));
+		applicationUI.UpdateViewportSize();
 
-		// Clear the framebuffer
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Draw triangle to framebuffer
 		glUseProgram(shaderProgramId);
+
+		float time = glfwGetTime();
+		float angle = 45.0f;
+
+		glUniform4f(ourColorLocation, triangleColor[0], triangleColor[1], triangleColor[2], triangleColor[3]);
+
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glUseProgram(0);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// Now display the framebuffer texture in ImGui
-		ImVec2 pos = ImGui::GetCursorScreenPos();
-
-		ImGui::GetWindowDrawList()->AddImage(
-			(void*)(intptr_t)textureId,
-			ImVec2(pos.x, pos.y),
-			ImVec2(pos.x + windowWidth, pos.y + windowHeight),
-			ImVec2(0, 1),
-			ImVec2(1, 0)
-		);
-
-		ImGui::End();
-
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
+		applicationUI.RenderImGuiViewports();
+		applicationUI.EndFrame();
 
 		glfwSwapBuffers(mainWindow);
 		glfwPollEvents();
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	applicationUI.ShutdownUpImGui();
 
 	// Clean up
 	glfwDestroyWindow(mainWindow);
@@ -178,21 +168,63 @@ int main() {
 	return 0;
 }
 
-void createTriangle() {
-	GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f,
+void createCube() {
+
+	float vertices[] = {
+				-0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				-0.5f,  0.5f, -0.5f,
+				-0.5f, -0.5f, -0.5f,
+
+				-0.5f, -0.5f,  0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f,
+				-0.5f, -0.5f,  0.5f,
+
+				-0.5f,  0.5f,  0.5f,
+				-0.5f,  0.5f, -0.5f,
+				-0.5f, -0.5f, -0.5f,
+				-0.5f, -0.5f, -0.5f,
+				-0.5f, -0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f,
+
+				 0.5f,  0.5f,  0.5f,
+				 0.5f,  0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+
+				-0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f, -0.5f,
+				 0.5f, -0.5f,  0.5f,
+				 0.5f, -0.5f,  0.5f,
+				-0.5f, -0.5f,  0.5f,
+				-0.5f, -0.5f, -0.5f,
+
+				-0.5f,  0.5f, -0.5f,
+				 0.5f,  0.5f, -0.5f,
+				 0.5f,  0.5f,  0.5f,
+				 0.5f,  0.5f,  0.5f,
+				-0.5f,  0.5f,  0.5f,
+				-0.5f,  0.5f, -0.5f,
 	};
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
 
+	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); // 3 * sizeof(GL_FLOAT)
+	// remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0); // 3 * sizeof(GL_FLOAT)
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -1,0 +1,28 @@
+#pragma once
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+class ApplicationUI
+{
+public:
+	ApplicationUI();
+
+	void Initialize(GLFWwindow* mainWindow);
+	void BeginFrame();
+	void EndFrame();
+	void DrawFramebuffer(GLint textureId);
+	void UpdateViewportSize();
+	void SetupDockspace();
+	void RenderImGuiViewports();
+	void DrawEditorWindow(float color[]);
+	void ShutdownUpImGui();
+private:
+	ImGuiIO* m_io;
+	float m_viewportWidth;
+	float m_viewportHeight;
+};
+
