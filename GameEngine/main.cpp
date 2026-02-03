@@ -140,9 +140,6 @@ int main() {
 
 		glUseProgram(shaderProgramId);
 
-		float time = glfwGetTime();
-		float angle = 45.0f;
-
 		glUniform4f(ourColorLocation, triangleColor[0], triangleColor[1], triangleColor[2], triangleColor[3]);
 
 		glBindVertexArray(VAO);
