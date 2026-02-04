@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "ApplicationUI.H"
-
+#include "Shader.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -21,34 +21,8 @@ GLuint VBO;
 GLuint FBO;
 GLuint RBO;
 GLuint textureId;
-GLuint shaderProgramId;
-
-const char* vertexShader = R"glsl(
-#version 330
-
-layout (location = 0) in vec3 aPos;
-
-uniform mat4 model;
-
-void main() {
-	gl_Position = model * vec4(aPos, 1.0f);
-}
-)glsl";
-
-const char* fragmentShader = R"glsl(
-#version 330
-
-out vec4 aColor;
-uniform vec4 ourColor;
-
-void main() {
-	aColor = ourColor;
-}
-)glsl";
 
 void createCube();
-void addShader(GLuint shaderProgram, const char* shaderCode, GLenum shaderType);
-void createAndCompileShader();
 
 void createFramebuffer();
 void rescaleFramebuffer(float width, float height);
@@ -87,37 +61,24 @@ int main() {
 		return 1;
 	}
 
+	Shader shader("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag");
+
 	int bufferWidth = 0;
 	int bufferHeight = 0;
 	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
 	createCube();
-	createAndCompileShader();
 	createFramebuffer();
 
 	ApplicationUI applicationUI;
 	applicationUI.Initialize(mainWindow);
 
-	glUseProgram(shaderProgramId);
-	GLint ourColorLocation = glGetUniformLocation(shaderProgramId, "ourColor");
-
-
-	if (ourColorLocation == -1) {
-		std::cout << "Cannot find our color uniform\n";
-	}
-
-	GLint modelMatrixLocation = glGetUniformLocation(shaderProgramId, "model");
-
-	if (modelMatrixLocation == -1) {
-		std::cout << "Cannot find model matrix uniform\n";
-	}
-
+	shader.useShaderProgram();
 	glm::mat4 model = glm::mat4(1.0f);
+	shader.setMat4("model", model);
 
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-	float triangleColor[] = {1.0f, 0.0f, 0.0f, 1.0f};
+	float cubeColor[] = {1.0f, 0.0f, 0.0f, 1.0f};
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 		processInput(mainWindow);
@@ -129,7 +90,7 @@ int main() {
 
 		 // Draw ImGui windows first to get viewport size
 		applicationUI.DrawFramebuffer(textureId);
-		applicationUI.DrawEditorWindow(triangleColor);
+		applicationUI.DrawEditorWindow(cubeColor);
 
 		// Render to framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -138,9 +99,8 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(shaderProgramId);
-
-		glUniform4f(ourColorLocation, triangleColor[0], triangleColor[1], triangleColor[2], triangleColor[3]);
+		shader.useShaderProgram();
+		shader.setVec4("ourColor", glm::vec4(cubeColor[0], cubeColor[1], cubeColor[2], cubeColor[3]));
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -226,62 +186,6 @@ void createCube() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-}
-
-void addShader(GLuint shaderProgram, const char* shaderCode, GLenum shaderType) {
-	GLuint shaderToCreate = glCreateShader(shaderType);
-
-	const GLchar* code[1];
-	code[0] = shaderCode;
-
-	GLint codeLength[1];
-	codeLength[0] = strlen(shaderCode);
-
-	glShaderSource(shaderToCreate, 1, code, codeLength);
-	glCompileShader(shaderToCreate);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glGetShaderiv(shaderToCreate, GL_COMPILE_STATUS, &result);
-	if (!result) {
-		glGetShaderInfoLog(shaderToCreate, sizeof(eLog), NULL, eLog);
-		std::cout << "Error compiling " << shaderType << " shader: " << eLog << "\n";
-		return;
-	}
-
-	glAttachShader(shaderProgram, shaderToCreate);
-}
-
-void createAndCompileShader() {
-	shaderProgramId = glCreateProgram();
-
-	if (!shaderProgramId) {
-		std::cout << "Error creating shader program!\n";
-		exit(1);
-	}
-
-	addShader(shaderProgramId, vertexShader, GL_VERTEX_SHADER);
-	addShader(shaderProgramId, fragmentShader, GL_FRAGMENT_SHADER);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glLinkProgram(shaderProgramId);
-	glGetProgramiv(shaderProgramId, GL_LINK_STATUS, &result);
-	if (!result) {
-		glGetProgramInfoLog(shaderProgramId, sizeof(eLog), NULL, eLog);
-		std::cout << "Error linking program:\n" << eLog << '\n';
-		return;
-	}
-
-	glValidateProgram(shaderProgramId);
-	glGetProgramiv(shaderProgramId, GL_VALIDATE_STATUS, &result);
-	if (!result) {
-		glGetProgramInfoLog(shaderProgramId, sizeof(eLog), NULL, eLog);
-		std::cout << "Error validating program:\n" << eLog << '\n';
-		return;
-	}
 }
 
 void createFramebuffer() {
