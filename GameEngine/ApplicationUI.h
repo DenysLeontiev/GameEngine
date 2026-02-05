@@ -18,7 +18,7 @@ public:
 	void UpdateViewportSize();
 	void SetupDockspace();
 	void RenderImGuiViewports();
-	void DrawEditorWindow(float color[]);
+	void DrawEditorWindow(float color[4], float positionVec3f[3], float rotationVec3f[3], float scaleVec3f[3]);
 	void ShutdownUpImGui();
 private:
 	ImGuiIO* m_io;

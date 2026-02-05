@@ -1,5 +1,7 @@
 #include "ApplicationUI.h"
 
+#include <limits>
+
 // External function declared in main.cpp
 extern void rescaleFramebuffer(float width, float height);
 
@@ -110,9 +112,13 @@ void ApplicationUI::RenderImGuiViewports() {
 	}
 }
 
-void ApplicationUI::DrawEditorWindow(float color[]) {
+void ApplicationUI::DrawEditorWindow(float color[4], float positionVec3f[3], float rotationVec3f[3], float scaleVec3f[3]) {
+	float stepOffset = 0.05f;
 	ImGui::Begin("Settings");
-	ImGui::ColorEdit4("Cube Color", color);
+	ImGui::DragFloat3("position (xyz)", positionVec3f, stepOffset);
+	ImGui::DragFloat3("rotation (xyz)", rotationVec3f, stepOffset);
+	ImGui::DragFloat3("scale (xyz)", scaleVec3f, stepOffset);
+	ImGui::ColorEdit4("color (rgba)", color);
 	ImGui::End();
 }
 

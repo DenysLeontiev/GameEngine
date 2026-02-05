@@ -76,9 +76,17 @@ int main() {
 
 	shader.useShaderProgram();
 	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0f));
 	shader.setMat4("model", model);
 
-	float cubeColor[] = {1.0f, 0.0f, 0.0f, 1.0f};
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(45.0f, (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
+	shader.setMat4("projection", projection);
+
+	float cubeColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+	float positionVec3f[3] = { 0.0f, 0.0f, -2.0f };
+	float rotationVec3f[3] = { 0.0f, 0.0f, 0.0f };
+	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 		processInput(mainWindow);
@@ -90,7 +98,7 @@ int main() {
 
 		 // Draw ImGui windows first to get viewport size
 		applicationUI.DrawFramebuffer(textureId);
-		applicationUI.DrawEditorWindow(cubeColor);
+		applicationUI.DrawEditorWindow(cubeColor, positionVec3f, rotationVec3f, scaleVec3f);
 
 		// Render to framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -101,6 +109,14 @@ int main() {
 
 		shader.useShaderProgram();
 		shader.setVec4("ourColor", glm::vec4(cubeColor[0], cubeColor[1], cubeColor[2], cubeColor[3]));
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(positionVec3f[0], positionVec3f[1], positionVec3f[2]));
+		model = glm::rotate(model, glm::radians(rotationVec3f[0]), glm::vec3(1, 0, 0));
+		model = glm::rotate(model, glm::radians(rotationVec3f[1]), glm::vec3(0, 1, 0));
+		model = glm::rotate(model, glm::radians(rotationVec3f[2]), glm::vec3(0, 0, 1));
+		model = glm::scale(model, glm::vec3(scaleVec3f[0], scaleVec3f[1], scaleVec3f[2]));
+		shader.setMat4("model", model);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -128,50 +144,48 @@ int main() {
 void createCube() {
 
 	float vertices[] = {
-				-0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				-0.5f,  0.5f, -0.5f,
-				-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-				-0.5f, -0.5f,  0.5f,
-				 0.5f, -0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				-0.5f,  0.5f,  0.5f,
-				-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
 
-				-0.5f,  0.5f,  0.5f,
-				-0.5f,  0.5f, -0.5f,
-				-0.5f, -0.5f, -0.5f,
-				-0.5f, -0.5f, -0.5f,
-				-0.5f, -0.5f,  0.5f,
-				-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
 
-				 0.5f,  0.5f,  0.5f,
-				 0.5f,  0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
 
-				-0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f, -0.5f,
-				 0.5f, -0.5f,  0.5f,
-				 0.5f, -0.5f,  0.5f,
-				-0.5f, -0.5f,  0.5f,
-				-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-				-0.5f,  0.5f, -0.5f,
-				 0.5f,  0.5f, -0.5f,
-				 0.5f,  0.5f,  0.5f,
-				 0.5f,  0.5f,  0.5f,
-				-0.5f,  0.5f,  0.5f,
-				-0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
 	};
-
-
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
