@@ -10,7 +10,13 @@
 #include "ApplicationUI.H"
 #include "Shader.h"
 
+void createCube();
+
+void createFramebuffer();
+void rescaleFramebuffer(float width, float height);
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void processInput(GLFWwindow* window);
 
 const GLint SCREEN_WIDTH = 800;
@@ -22,10 +28,19 @@ GLuint FBO;
 GLuint RBO;
 GLuint textureId;
 
-void createCube();
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void createFramebuffer();
-void rescaleFramebuffer(float width, float height);
+float pitch = 0.0f;
+float yaw = -90.0f;
+float lastX = SCREEN_WIDTH / 2; 
+float lastY = SCREEN_HEIGHT / 2;
+bool isFirstCameraMove = true;
+
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main() {
 
@@ -51,8 +66,10 @@ int main() {
 	glfwMakeContextCurrent(mainWindow);
 
 	glfwSetFramebufferSizeCallback(mainWindow, framebufferSizeCallback);
+	glfwSetCursorPosCallback(mainWindow, mouseCallback);
 
 	glewExperimental = GL_TRUE;
+	//glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Failed to init glew" << "\n";
@@ -76,15 +93,18 @@ int main() {
 
 	shader.useShaderProgram();
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0f));
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 	shader.setMat4("model", model);
+
+	glm::mat4 view = glm::mat4(1.0f);
+	shader.setMat4("view", view);
 
 	glm::mat4 projection = glm::mat4(1.0f);
 	projection = glm::perspective(45.0f, (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
 	shader.setMat4("projection", projection);
 
 	float cubeColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-	float positionVec3f[3] = { 0.0f, 0.0f, -2.0f };
+	float positionVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float rotationVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
 
@@ -93,6 +113,10 @@ int main() {
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
 		applicationUI.BeginFrame();
 
@@ -117,6 +141,9 @@ int main() {
 		model = glm::rotate(model, glm::radians(rotationVec3f[2]), glm::vec3(0, 0, 1));
 		model = glm::scale(model, glm::vec3(scaleVec3f[0], scaleVec3f[1], scaleVec3f[2]));
 		shader.setMat4("model", model);
+
+		view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
+		shader.setMat4("view", view);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -242,8 +269,55 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
+void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+
+	if (isFirstCameraMove == true) {
+		lastX = xPos;
+		lastY = yPos;
+		isFirstCameraMove = false;
+	}
+
+	float xoffset = xPos - lastX;
+	float yoffset = lastY - yPos;
+	lastX = xPos;
+	lastY = yPos;
+
+	float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraDirection = glm::normalize(direction);
+}
+
 void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	float cameraSpeed = 2.5f * deltaTime;
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cameraPosition += cameraDirection * cameraSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameraPosition -= cameraDirection * cameraSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameraPosition += glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameraPosition -= glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
 	}
 }
