@@ -17,6 +17,7 @@ void rescaleFramebuffer(float width, float height);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void processInput(GLFWwindow* window);
 
 const GLint SCREEN_WIDTH = 800;
@@ -38,6 +39,8 @@ float lastX = SCREEN_WIDTH / 2;
 float lastY = SCREEN_HEIGHT / 2;
 bool isFirstCameraMove = true;
 
+bool isRightMouseButtonHeld = false;
+
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -49,6 +52,7 @@ int main() {
 		glfwTerminate();
 		return 1;
 	}
+
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -67,9 +71,9 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(mainWindow, framebufferSizeCallback);
 	glfwSetCursorPosCallback(mainWindow, mouseCallback);
+	glfwSetMouseButtonCallback(mainWindow, mouseButtonCallback);
 
 	glewExperimental = GL_TRUE;
-	//glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Failed to init glew" << "\n";
@@ -109,6 +113,9 @@ int main() {
 	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
 
 	while (!glfwWindowShouldClose(mainWindow)) {
+
+		glfwSetInputMode(mainWindow, GLFW_CURSOR, (isRightMouseButtonHeld ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL));
+
 		processInput(mainWindow);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -271,6 +278,10 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 
+	if (isRightMouseButtonHeld == false) {
+		return;
+	}
+
 	if (isFirstCameraMove == true) {
 		lastX = xPos;
 		lastY = yPos;
@@ -301,23 +312,38 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 	cameraDirection = glm::normalize(direction);
 }
 
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS) {
+			isRightMouseButtonHeld = true;
+			isFirstCameraMove = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			isRightMouseButtonHeld = false;
+			isFirstCameraMove = true;
+		}
+	}
+}
+
 void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
 
-	float cameraSpeed = 2.5f * deltaTime;
+	if (isRightMouseButtonHeld) {
+		float cameraSpeed = 2.5f * deltaTime;
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		cameraPosition += cameraDirection * cameraSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		cameraPosition -= cameraDirection * cameraSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		cameraPosition += glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		cameraPosition -= glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			cameraPosition += cameraDirection * cameraSpeed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			cameraPosition -= cameraDirection * cameraSpeed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			cameraPosition += glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			cameraPosition -= glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+		}
 	}
 }
