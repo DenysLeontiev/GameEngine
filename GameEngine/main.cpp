@@ -359,5 +359,11 @@ void processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			cameraPosition -= glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
 		}
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+			cameraPosition += cameraUp * cameraSpeed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+			cameraPosition -= cameraUp * cameraSpeed;
+		}
 	}
 }
