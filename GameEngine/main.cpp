@@ -16,9 +16,13 @@ void createFramebuffer();
 void rescaleFramebuffer(float width, float height);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+void mouseCallback(GLFWwindow* window, double currentX, double currentY);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void processInput(GLFWwindow* window);
+
+static float fpsTimer = 0.0f;
+static int frameCount = 0;
+float fps = 0.0f;
 
 const GLint SCREEN_WIDTH = 800;
 const GLint SCREEN_HEIGHT = 600;
@@ -114,9 +118,9 @@ int main() {
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 
-		glfwSetInputMode(mainWindow, GLFW_CURSOR, (isRightMouseButtonHeld ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL));
-
 		processInput(mainWindow);
+
+		glfwSetInputMode(mainWindow, GLFW_CURSOR, (isRightMouseButtonHeld ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL));
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -125,11 +129,21 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		fpsTimer += deltaTime;
+		frameCount++;
+
+		if (fpsTimer > 1.0f) {
+			fps = frameCount / fpsTimer;
+			fpsTimer = 0.0f;
+			frameCount = 0;
+		}
+
 		applicationUI.BeginFrame();
 
 		 // Draw ImGui windows first to get viewport size
 		applicationUI.DrawFramebuffer(textureId);
 		applicationUI.DrawEditorWindow(cubeColor, positionVec3f, rotationVec3f, scaleVec3f);
+		applicationUI.DrawTaskBar(fps, isRightMouseButtonHeld);
 
 		// Render to framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -276,22 +290,22 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+void mouseCallback(GLFWwindow* window, double currentX, double currentY) {
 
 	if (isRightMouseButtonHeld == false) {
 		return;
 	}
 
 	if (isFirstCameraMove == true) {
-		lastX = xPos;
-		lastY = yPos;
+		lastX = currentX;
+		lastY = currentY;
 		isFirstCameraMove = false;
 	}
 
-	float xoffset = xPos - lastX;
-	float yoffset = lastY - yPos;
-	lastX = xPos;
-	lastY = yPos;
+	float xoffset = currentX - lastX;
+	float yoffset = lastY - currentY;
+	lastX = currentX;
+	lastY = currentY;
 
 	float sensitivity = 0.1f;
 	xoffset *= sensitivity;

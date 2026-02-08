@@ -122,6 +122,21 @@ void ApplicationUI::DrawEditorWindow(float color[4], float positionVec3f[3], flo
 	ImGui::End();
 }
 
+void ApplicationUI::DrawTaskBar(float fps, bool isRMBHeld) {
+	ImGuiWindowFlags flags =
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove;
+
+	ImGui::Begin("Task Bar", nullptr, flags);
+	ImGui::Text("FPS: %.1f", fps);
+	ImGui::SameLine();
+	ImGui::Text("|");
+	ImGui::SameLine();
+	ImGui::Text("Is Camera Active (RMB): %s", (isRMBHeld ? "True" : "False"));
+	ImGui::End();
+}
+
 void ApplicationUI::ShutdownUpImGui() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
