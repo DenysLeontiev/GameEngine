@@ -145,7 +145,7 @@ int main() {
 		 // Draw ImGui windows first to get viewport size
 		applicationUI.DrawFramebuffer(textureId);
 		applicationUI.DrawEditorWindow(cubeColor, positionVec3f, rotationVec3f, scaleVec3f);
-		applicationUI.DrawTaskBar(fps, isRightMouseButtonHeld);
+		applicationUI.DrawTaskBar(fps, camera.zoom, isRightMouseButtonHeld);
 
 		// Render to framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);

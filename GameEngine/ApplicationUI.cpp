@@ -122,18 +122,23 @@ void ApplicationUI::DrawEditorWindow(float color[4], float positionVec3f[3], flo
 	ImGui::End();
 }
 
-void ApplicationUI::DrawTaskBar(float fps, bool isRMBHeld) {
+void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
+{
 	ImGuiWindowFlags flags =
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove;
 
 	ImGui::Begin("Task Bar", nullptr, flags);
+
 	ImGui::Text("FPS: %.1f", fps);
-	ImGui::SameLine();
-	ImGui::Text("|");
-	ImGui::SameLine();
-	ImGui::Text("Is Camera Active (RMB): %s", (isRMBHeld ? "True" : "False"));
+	ImGui::SameLine(0, 20);
+
+	ImGui::Text("FOV: %.1f", fov);
+	ImGui::SameLine(0, 20);
+
+	ImGui::Text("Camera Active: %s", isRMBHeld ? "True" : "False");
+
 	ImGui::End();
 }
 

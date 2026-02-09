@@ -19,7 +19,7 @@ public:
 	void SetupDockspace();
 	void RenderImGuiViewports();
 	void DrawEditorWindow(float color[4], float positionVec3f[3], float rotationVec3f[3], float scaleVec3f[3]);
-	void DrawTaskBar(float fps, bool isRMBHeld);
+	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
 	void ShutdownUpImGui();
 private:
 	ImGuiIO* m_io;
