@@ -9,6 +9,7 @@
 
 #include "ApplicationUI.H"
 #include "Shader.h"
+#include "Camera.h"
 
 void createCube();
 
@@ -17,6 +18,7 @@ void rescaleFramebuffer(float width, float height);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void mouseCallback(GLFWwindow* window, double currentX, double currentY);
+void mouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void processInput(GLFWwindow* window);
 
@@ -33,9 +35,8 @@ GLuint FBO;
 GLuint RBO;
 GLuint textureId;
 
-glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraDirection = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3 cameraInitialPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+Camera camera(cameraInitialPosition);
 
 float pitch = 0.0f;
 float yaw = -90.0f;
@@ -75,6 +76,7 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(mainWindow, framebufferSizeCallback);
 	glfwSetCursorPosCallback(mainWindow, mouseCallback);
+	glfwSetScrollCallback(mainWindow, mouseScrollCallback);
 	glfwSetMouseButtonCallback(mainWindow, mouseButtonCallback);
 
 	glewExperimental = GL_TRUE;
@@ -100,6 +102,7 @@ int main() {
 	applicationUI.Initialize(mainWindow);
 
 	shader.useShaderProgram();
+
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 	shader.setMat4("model", model);
@@ -108,7 +111,6 @@ int main() {
 	shader.setMat4("view", view);
 
 	glm::mat4 projection = glm::mat4(1.0f);
-	projection = glm::perspective(45.0f, (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
 	shader.setMat4("projection", projection);
 
 	float cubeColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
@@ -125,7 +127,7 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		float currentFrame = glfwGetTime();
+		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -163,8 +165,12 @@ int main() {
 		model = glm::scale(model, glm::vec3(scaleVec3f[0], scaleVec3f[1], scaleVec3f[2]));
 		shader.setMat4("model", model);
 
-		view = glm::lookAt(cameraPosition, cameraPosition + cameraDirection, cameraUp);
+		view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
+
+		projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
+
+		shader.setMat4("projection", projection);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -302,28 +308,23 @@ void mouseCallback(GLFWwindow* window, double currentX, double currentY) {
 		isFirstCameraMove = false;
 	}
 
-	float xoffset = currentX - lastX;
-	float yoffset = lastY - currentY;
-	lastX = currentX;
+	float xOffset = currentX - lastX;
+	float yOffset = lastY - currentY;
+
+	lastX = currentX;	
 	lastY = currentY;
 
-	float sensitivity = 0.1f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
+	camera.ProcessMouseInput(xOffset, yOffset);
+}
 
-	yaw += xoffset;
-	pitch += yoffset;
+void mouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
 
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	if (isRightMouseButtonHeld == false) {
+		return;
+	}
 
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraDirection = glm::normalize(direction);
+	float offset = static_cast<float>(yOffset);
+	camera.ProcessMouseScroll(offset);
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -345,25 +346,24 @@ void processInput(GLFWwindow* window) {
 	}
 
 	if (isRightMouseButtonHeld) {
-		float cameraSpeed = 2.5f * deltaTime;
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			cameraPosition += cameraDirection * cameraSpeed;
+			camera.ProcessKeyboardInput(FORWARD, deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			cameraPosition -= cameraDirection * cameraSpeed;
+			camera.ProcessKeyboardInput(BACKWARD, deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			cameraPosition += glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+			camera.ProcessKeyboardInput(RIGHT, deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			cameraPosition -= glm::normalize(glm::cross(cameraDirection, cameraUp)) * cameraSpeed;
+			camera.ProcessKeyboardInput(LEFT, deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			cameraPosition += cameraUp * cameraSpeed;
+			camera.ProcessKeyboardInput(UPWARD, deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			cameraPosition -= cameraUp * cameraSpeed;
+			camera.ProcessKeyboardInput(DOWNWARD, deltaTime);
 		}
 	}
 }
