@@ -347,23 +347,26 @@ void processInput(GLFWwindow* window) {
 
 	if (isRightMouseButtonHeld) {
 
+		float speedMultiplier = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+			? MOVEMENT_SPEED_MULTIPLIER : 1.0f;
+
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(FORWARD, deltaTime);
+			camera.ProcessKeyboardInput(FORWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(BACKWARD, deltaTime);
+			camera.ProcessKeyboardInput(BACKWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(RIGHT, deltaTime);
+			camera.ProcessKeyboardInput(RIGHT, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(LEFT, deltaTime);
+			camera.ProcessKeyboardInput(LEFT, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(UPWARD, deltaTime);
+			camera.ProcessKeyboardInput(UPWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(DOWNWARD, deltaTime);
+			camera.ProcessKeyboardInput(DOWNWARD, deltaTime, speedMultiplier);
 		}
 	}
 }

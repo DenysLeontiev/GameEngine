@@ -17,6 +17,7 @@ enum CameraMovement {
 const float PITCH = 0.0f;
 const float YAW = -90.0f;
 const float MOVEMENT_SPEED = 2.5f;
+const float MOVEMENT_SPEED_MULTIPLIER = 5.0f;
 const float INITIAL_ZOOM = 45.0f;
 const float MOUSE_SENSITIVITY = 0.1f;
 
@@ -63,32 +64,20 @@ public:
 		this->yaw = yaw;
 		this->pitch = pitch;
 		this->movementSpeed = movementSpeed;
-		this->zoom = INITIAL_ZOOM;
+		this->zoom = zoom;
 
 		UpdateCameraVectors();
 	}
 
-	void ProcessKeyboardInput(CameraMovement cameraMovement, float deltaTime) {
-		float velocity = movementSpeed * deltaTime;
+	void ProcessKeyboardInput(CameraMovement dir, float deltaTime, float speedMultiplier = 1.0f) {
+		float velocity = movementSpeed * deltaTime * speedMultiplier;
 
-		if (cameraMovement == FORWARD) {
-			cameraPosition += cameraDirection * velocity;
-		}
-		if (cameraMovement == BACKWARD) {
-			cameraPosition -= cameraDirection * velocity;
-		}
-		if (cameraMovement == RIGHT) {
-			cameraPosition += cameraRight * velocity;
-		}
-		if (cameraMovement == LEFT) {
-			cameraPosition -= cameraRight * velocity;
-		}
-		if (cameraMovement == UPWARD) {
-			cameraPosition += cameraUp * velocity;
-		}
-		if (cameraMovement == DOWNWARD) {
-			cameraPosition -= cameraUp * velocity;
-		}
+		if (dir == FORWARD)  cameraPosition += cameraDirection * velocity;
+		if (dir == BACKWARD) cameraPosition -= cameraDirection * velocity;
+		if (dir == RIGHT)    cameraPosition += cameraRight * velocity;
+		if (dir == LEFT)     cameraPosition -= cameraRight * velocity;
+		if (dir == UPWARD)   cameraPosition += cameraUp * velocity;
+		if (dir == DOWNWARD) cameraPosition -= cameraUp * velocity;
 	}
 
 	void ProcessMouseInput(float xOffset, float yOffset, GLboolean constrainPitch = true) {
