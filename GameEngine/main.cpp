@@ -8,6 +8,8 @@
 #include<vector>
 #include <iostream>
 
+#include "stb_image.h"
+
 #include "ApplicationUI.h"
 
 #include "Shader.h"
@@ -16,6 +18,8 @@
 
 void createFramebuffer();
 void rescaleFramebuffer(float width, float height);
+
+unsigned int createTextureFromPath(const char* path, bool flip = true);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void mouseCallback(GLFWwindow* window, double currentX, double currentY);
@@ -47,10 +51,8 @@ bool isFirstCameraMove = true;
 
 bool isRightMouseButtonHeld = false;
 
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
 
 std::vector<Vertex> cubeVertices = {
 	// FRONT (+Z)
@@ -107,7 +109,6 @@ int main() {
 		return 1;
 	}
 
-
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -145,7 +146,6 @@ int main() {
 	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	//createCube();
 	createFramebuffer();
 
 	ApplicationUI applicationUI;
@@ -165,7 +165,7 @@ int main() {
 	glm::mat4 projection = glm::mat4(1.0f);
 	shader.setMat4("projection", projection);
 
-	float cubeColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+	float cubeColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float positionVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float rotationVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
@@ -207,6 +207,13 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.useShaderProgram();
+
+		glActiveTexture(GL_TEXTURE0);
+
+		unsigned int texture = createTextureFromPath("assets/textures/container.jpg", true);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		shader.setInt("ourTexture", 0);
 
 		mesh.draw();
 
@@ -363,4 +370,44 @@ void processInput(GLFWwindow* window) {
 			camera.ProcessKeyboardInput(DOWNWARD, deltaTime, speedMultiplier);
 		}
 	}
+}
+
+unsigned int createTextureFromPath(const char* path, bool flip) {
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width;
+	int height;
+	int nrChannels;
+
+	stbi_set_flip_vertically_on_load(flip);
+
+	unsigned char* data = stbi_load("assets/textures/container.jpg", &width, &height, &nrChannels, 0);
+
+	if (data) {
+
+		GLenum format;
+		if (nrChannels == 1)
+			format = GL_RED;
+		else if (nrChannels == 3)
+			format = GL_RGB;
+		else if (nrChannels == 4)
+			format = GL_RGBA;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		stbi_image_free(data);
+	}
+	else {
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	return texture;
 }
