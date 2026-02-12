@@ -109,6 +109,7 @@ public:
 
 	void setMat4(const std::string& name, glm::mat4 matrix) const {
 		GLint location = getShaderUniformLocation(name);
+		// Correctly upload a 4x4 matrix to the uniform location
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 
