@@ -12,6 +12,8 @@
 
 #include "ApplicationUI.h"
 
+#include <assimp/Importer.hpp>
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Mesh.h"
@@ -169,6 +171,8 @@ int main() {
 	float positionVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float rotationVec3f[3] = { 0.0f, 0.0f, 0.0f };
 	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
+
+	Assimp::Importer importer{};
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 
