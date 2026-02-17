@@ -18,6 +18,7 @@ ApplicationUI::ApplicationUI()
 	m_viewportWidth(0.0f),
 	m_viewportHeight(0.0f)
 {
+	uiTheme.SetCurrentTheme(Theme::Dark);
 	currentPath = fs::current_path();
 }
 
@@ -79,7 +80,7 @@ void ApplicationUI::EndFrame() {
 
 void ApplicationUI::DrawFramebuffer(GLint textureId) {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGui::Begin("Editor");
+	ImGui::Begin("Scene");
 
 	// Get available size in this window
 	ImVec2 size = ImGui::GetContentRegionAvail();
@@ -139,6 +140,7 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 
 	DrawHierarchyTaskBar(hierarchy);
 
+	ChangeThemePopup();
 	ImGui::End();
 }
 
@@ -161,8 +163,9 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 
 	const float w = ImGui::GetContentRegionAvail().x;
 
-	if (ImGui::Button("Load", ImVec2(w, 0)))
+	if (ImGui::Button("Load", ImVec2(w, 0))) {
 		ImGui::OpenPopup("LoadFilePopup");
+	}
 
 	static char renameBuffer[256] = "";
 	ImGui::AlignTextToFramePadding();
@@ -175,26 +178,28 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 
 	bool canEdit = (selectedModel != nullptr);
 
-	if (!canEdit) ImGui::BeginDisabled();
+	if (!canEdit) {
+		ImGui::BeginDisabled();
+	}
+
 	ImGui::InputText("##RenameModel", renameBuffer, sizeof(renameBuffer));
 	ImGui::SameLine();
 
 	bool doRename = ImGui::Button("Rename", ImVec2(btnW, 0));
-	if (!canEdit) ImGui::EndDisabled();
+	if (!canEdit) {
+		ImGui::EndDisabled();
+	}
 
-	if (doRename && selectedModel && renameBuffer[0] != '\0')
-	{
+	if (doRename && selectedModel && renameBuffer[0] != '\0') {
 		selectedModel->SetModelName(renameBuffer);
 		renameBuffer[0] = '\0';
 	}
 
-	if (selectedModel)
-	{
+	if (selectedModel) {
 		if (ImGui::Button("Delete", ImVec2(w, 0)))
 			hierarchy.RemoveModel(selectedModel->id);
 	}
-	else
-	{
+	else {
 		ImGui::BeginDisabled();
 		ImGui::Button("Delete", ImVec2(w, 0));
 		ImGui::EndDisabled();
@@ -207,8 +212,6 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar(3);
 }
-
-
 
 void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 	Model* selectedModel = hierarchy.GetSelectedModel();
@@ -289,6 +292,41 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 
 		ImGui::EndPopup();
 	}
+}
+
+void ApplicationUI::ChangeThemePopup() {
+	
+	ImGui::Begin("Editor");
+
+	std::string* themes = uiTheme.GetAvailableThemes();
+	Theme currentTheme = uiTheme.GetCurrentTheme();
+
+	if (ImGui::BeginCombo("##Theme", UITheme::ThemeToString(currentTheme).c_str())) {
+		for (size_t i = 0; i < THEME_COUNT; i++) {
+			bool isSelected = UITheme::ThemeToString(currentTheme) == themes[i];
+
+			if (ImGui::Selectable((themes[i]).c_str(), isSelected)) {
+				currentTheme = UITheme::StringToTheme(themes[i]);
+				uiTheme.SetCurrentTheme(currentTheme);
+
+				switch (currentTheme) {
+					case Theme::Dark:
+						ImGui::StyleColorsDark();
+						break;
+					case Theme::Light:
+						ImGui::StyleColorsLight();
+						break;
+					case Theme::Classic:
+						ImGui::StyleColorsClassic();
+						break;
+				}
+			}
+		}
+
+		ImGui::EndCombo();
+	}
+
+	ImGui::End();
 }
 
 void ApplicationUI::ShutdownUpImGui() {

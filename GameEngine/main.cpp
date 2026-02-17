@@ -104,12 +104,6 @@ int main() {
 
 	Hierarchy hierachy {};
 
-	Model marcelineModel("C:/Users/User/Downloads/marceline-the-vampire-queen/source/Marceline/Final2.obj", "Marceline", 1);
-	Model statue("C:/Users/User/Downloads/marble_venus_de_milo_statue/scene.gltf", "Statues", 2);
-
-	hierachy.AddModel(marcelineModel);
-	hierachy.AddModel(statue);
-
 	while (!glfwWindowShouldClose(mainWindow)) {
 
 		processInput(mainWindow);

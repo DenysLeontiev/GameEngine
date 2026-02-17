@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "Hierarchy.h"
+#include "UITheme.h"
 
 namespace fs = std::filesystem;
 
@@ -28,6 +29,7 @@ public:
 	void DrawHierarchyTaskBar(Hierarchy& hierarchy);
 	void DrawEditorWindow(Hierarchy& hierarchy);
 	void LoadFilePopup(Hierarchy& hierarchy);
+	void ChangeThemePopup();
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
 	void ShutdownUpImGui();
 private:
@@ -35,6 +37,7 @@ private:
 	float m_viewportWidth;
 	float m_viewportHeight;
 
+	UITheme uiTheme;
 	fs::path currentPath {};
 };
 
