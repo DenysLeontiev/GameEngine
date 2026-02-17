@@ -19,6 +19,10 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <guiddef.h>
+#include <combaseapi.h>
+#include "Transform.h"
+#include "Material.h"
 using namespace std;
 
 unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
@@ -29,13 +33,20 @@ public:
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
+    Transform transform;
+    Material material;
     string directory;
     bool gammaCorrection;
 
+    int id;
+    string name;
+
     // constructor, expects a filepath to a 3D model.
-    Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
+    Model(string const& path, string name = "", int id = -1, bool gamma = false) : gammaCorrection(gamma)
     {
         loadModel(path);
+        this->name = name;
+        this->id = id;
     }
 
     // draws the model, and thus all its meshes
@@ -43,6 +54,14 @@ public:
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
+    }
+
+    string GetModelName() const {
+        return name;
+    }
+
+    void SetModelName(string modelName) {
+        name = modelName;
     }
 
 private:
@@ -59,7 +78,7 @@ private:
             return;
         }
         // retrieve the directory path of the filepath
-        directory = path.substr(0, path.find_last_of('/'));
+        directory = path.substr(0, path.find_last_of("/\\"));
 
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
@@ -203,7 +222,7 @@ private:
 };
 
 
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
+inline unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
 {
     string filename = string(path);
     filename = directory + '/' + filename;

@@ -6,6 +6,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <filesystem>
+
+#include "Hierarchy.h"
+
+namespace fs = std::filesystem;
+
 class ApplicationUI
 {
 public:
@@ -18,12 +24,16 @@ public:
 	void UpdateViewportSize();
 	void SetupDockspace();
 	void RenderImGuiViewports();
-	void DrawEditorWindow(float color[4], float positionVec3f[3], float rotationVec3f[3], float scaleVec3f[3]);
+	void DrawHierarchy(Hierarchy& hierarchy);
+	void DrawEditorWindow(Hierarchy& hierarchy);
+	void LoadFilePopup(Hierarchy& hierarchy);
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
 	void ShutdownUpImGui();
 private:
 	ImGuiIO* m_io;
 	float m_viewportWidth;
 	float m_viewportHeight;
+
+	fs::path currentPath {};
 };
 

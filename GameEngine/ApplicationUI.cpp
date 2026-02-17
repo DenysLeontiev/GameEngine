@@ -1,6 +1,14 @@
 #include "ApplicationUI.h"
 
+#include <iostream>
+
 #include <limits>
+#include <vector>
+#include <filesystem>
+
+#include "Model.h"
+
+namespace fs = std::filesystem;
 
 // External function declared in main.cpp
 extern void rescaleFramebuffer(float width, float height);
@@ -10,7 +18,7 @@ ApplicationUI::ApplicationUI()
 	m_viewportWidth(0.0f),
 	m_viewportHeight(0.0f)
 {
-
+	currentPath = fs::current_path();
 }
 
 void ApplicationUI::Initialize(GLFWwindow* mainWindow) {
@@ -112,14 +120,45 @@ void ApplicationUI::RenderImGuiViewports() {
 	}
 }
 
-void ApplicationUI::DrawEditorWindow(float color[4], float positionVec3f[3], float rotationVec3f[3], float scaleVec3f[3]) {
-	float stepOffset = 0.05f;
-	ImGui::Begin("Settings");
-	ImGui::DragFloat3("position (xyz)", positionVec3f, stepOffset);
-	ImGui::DragFloat3("rotation (xyz)", rotationVec3f, stepOffset);
-	ImGui::DragFloat3("scale (xyz)", scaleVec3f, stepOffset);
-	ImGui::ColorEdit4("color (rgba)", color);
+void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy) {
+	ImGui::Begin("Hierarchy");
+
+	auto& models = hierarchy.GetModels();
+	Model* selectedModel = hierarchy.GetSelectedModel();
+
+	for (size_t i = 0; i < models.size(); i++) {
+
+		Model& model = models[i];
+
+		bool isSelected = (selectedModel && model.id == selectedModel->id);
+
+		if (ImGui::Selectable(model.GetModelName().c_str(), isSelected)) {
+			hierarchy.SetSelectedModel(&model);
+		}
+	}
+
+	ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 20.0f);
+	if (ImGui::Button("Load Model")) {
+		ImGui::OpenPopup("LoadFilePopup");
+	}
+
+	LoadFilePopup(hierarchy);
+
 	ImGui::End();
+}
+
+void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
+	Model* selectedModel = hierarchy.GetSelectedModel();
+
+	if (selectedModel) {
+		float stepOffset = 0.05f;
+		ImGui::Begin("Settings");
+		ImGui::DragFloat3("position (xyz)", selectedModel->transform.PositionPointer(), stepOffset);
+		ImGui::DragFloat3("rotation (xyz)", selectedModel->transform.RotationPointer(), stepOffset);
+		ImGui::DragFloat3("scale (xyz)", selectedModel->transform.ScalePointer(), stepOffset);
+		ImGui::ColorEdit4("color (rgba)", selectedModel->material.ColorPointer(), stepOffset);
+		ImGui::End();
+	}
 }
 
 void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
@@ -140,6 +179,53 @@ void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
 	ImGui::Text("Camera Active: %s", isRMBHeld ? "True" : "False");
 
 	ImGui::End();
+}
+
+void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
+	if (ImGui::BeginPopup("LoadFilePopup")) {
+
+		if (ImGui::Button("Up")) {
+			currentPath = currentPath.parent_path();
+		}
+
+		ImGui::SeparatorText(currentPath.string().c_str());
+
+		for (const auto& entry : fs::directory_iterator(currentPath)) {
+
+			const bool isDirectory = entry.is_directory();
+			const bool isRegularFile = entry.is_regular_file();
+
+			std::string entryName = entry.path().filename().string();
+			std::string displayEntryName = isDirectory
+				? "[D] " + entryName : isRegularFile
+				? "[F] " + entryName : "";
+
+			ImGuiSelectableFlags flags = ImGuiSelectableFlags_DontClosePopups;
+
+
+			if (ImGui::Selectable(displayEntryName.c_str(), false, flags)) {
+				if (isDirectory) {
+					currentPath /= entry.path().filename();
+				}
+
+				if (isRegularFile) {
+					int modelId = hierarchy.GetNextId();
+					string modelName = entryName + "(" + to_string(modelId) + ")";
+					Model newModel(entry.path().string(), modelName, modelId);
+					hierarchy.AddModel(newModel);
+
+					ImGui::EndPopup();
+					return;
+				}
+			}
+		}
+
+		if (ImGui::MenuItem("Close")) {
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 void ApplicationUI::ShutdownUpImGui() {

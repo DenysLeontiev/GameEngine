@@ -18,6 +18,7 @@
 
 #include "assimp/Importer.hpp"
 #include "Model.h"
+#include "Hierarchy.h"
 
 void createFramebuffer();
 void rescaleFramebuffer(float width, float height);
@@ -164,13 +165,13 @@ int main() {
 	glm::mat4 projection = glm::mat4(1.0f);
 	shader.setMat4("projection", projection);
 
-	float cubeColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float positionVec3f[3] = { 0.0f, 0.0f, 0.0f };
-	float rotationVec3f[3] = { 0.0f, 0.0f, 0.0f };
-	float scaleVec3f[3] = { 1.0f, 1.0f, 1.0f };
+	Hierarchy hierachy {};
 
+	Model marcelineModel("C:/Users/User/Downloads/marceline-the-vampire-queen/source/Marceline/Final2.obj", "Marceline", 1);
+	Model statue("C:/Users/User/Downloads/marble_venus_de_milo_statue/scene.gltf", "Statues", 2);
 
-	Model ourModel("C:/Users/User/Downloads/marceline-the-vampire-queen/source/Marceline/Final2.obj");
+	hierachy.AddModel(marcelineModel);
+	hierachy.AddModel(statue);
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 
@@ -198,7 +199,9 @@ int main() {
 
 		 // Draw ImGui windows first to get viewport size
 		applicationUI.DrawFramebuffer(textureId);
-		applicationUI.DrawEditorWindow(cubeColor, positionVec3f, rotationVec3f, scaleVec3f);
+
+		applicationUI.DrawHierarchy(hierachy);
+		applicationUI.DrawEditorWindow(hierachy);
 		applicationUI.DrawTaskBar(fps, camera.zoom, isRightMouseButtonHeld);
 
 		// Render to framebuffer
@@ -210,25 +213,37 @@ int main() {
 
 		shader.useShaderProgram();
 
-		ourModel.Draw(shader);
+		Model* selectedModel = hierachy.GetSelectedModel();
+		vector<Model> models = hierachy.GetModels();
 
-		shader.setInt("ourTexture", 0);
+		for (size_t i = 0; i < models.size(); i++) {
+			Model& currentModel = models[i];
 
-		shader.setVec4("ourColor", glm::vec4(cubeColor[0], cubeColor[1], cubeColor[2], cubeColor[3]));
+			if (selectedModel && currentModel.id == selectedModel->id) {
+				model = glm::mat4(1.0f);
+				model = glm::translate(model, selectedModel->transform.GetPosition());
+				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().x), glm::vec3(1, 0, 0));
+				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().y), glm::vec3(0, 1, 0));
+				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().z), glm::vec3(0, 0, 1));
+				model = glm::scale(model, glm::vec3(selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().x));
 
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(positionVec3f[0], positionVec3f[1], positionVec3f[2]));
-		model = glm::rotate(model, glm::radians(rotationVec3f[0]), glm::vec3(1, 0, 0));
-		model = glm::rotate(model, glm::radians(rotationVec3f[1]), glm::vec3(0, 1, 0));
-		model = glm::rotate(model, glm::radians(rotationVec3f[2]), glm::vec3(0, 0, 1));
-		model = glm::scale(model, glm::vec3(scaleVec3f[0], scaleVec3f[1], scaleVec3f[2]));
-		shader.setMat4("model", model);
+				shader.setMat4("model", model);
+				shader.setVec4("ourColor", selectedModel->material.GetColor());
+			}
+			else {
+				model = currentModel.transform.GetModelMatrix();
+				shader.setMat4("model", model);
+
+			}
+			shader.setVec4("ourColor", currentModel.material.GetColor());
+
+			currentModel.Draw(shader);
+		}
 
 		view = camera.GetViewMatrix();
-		shader.setMat4("view", view);
-
 		projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
 
+		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 
 		glBindVertexArray(VAO);
