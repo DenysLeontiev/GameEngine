@@ -25,6 +25,7 @@ public:
 	void SetupDockspace();
 	void RenderImGuiViewports();
 	void DrawHierarchy(Hierarchy& hierarchy);
+	void DrawHierarchyTaskBar(Hierarchy& hierarchy);
 	void DrawEditorWindow(Hierarchy& hierarchy);
 	void LoadFilePopup(Hierarchy& hierarchy);
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);

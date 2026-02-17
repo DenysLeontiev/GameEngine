@@ -137,40 +137,77 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 			hierarchy.SetSelectedModel(&model);
 	}
 
-	ImGui::Spacing();
-	ImGui::Separator();
+	DrawHierarchyTaskBar(hierarchy);
 
-	float footerHeight = ImGui::GetFrameHeightWithSpacing();
-	float remaining = ImGui::GetContentRegionAvail().y - footerHeight;
+	ImGui::End();
+}
 
-	if (remaining > 0)
-		ImGui::Dummy(ImVec2(0, remaining));
+void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
+{
+	Model* selectedModel = hierarchy.GetSelectedModel();
 
-	if (ImGui::Button("Load Model")) {
+	const float barHeight = 74.0f;
+
+	ImGui::SetCursorPosY(ImGui::GetWindowHeight() - barHeight);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 6));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+
+	ImGui::BeginChild("##HierarchyFooter", ImVec2(0, barHeight), false,
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+	const float w = ImGui::GetContentRegionAvail().x;
+
+	if (ImGui::Button("Load", ImVec2(w, 0)))
 		ImGui::OpenPopup("LoadFilePopup");
-	}
 
+	static char renameBuffer[256] = "";
+	ImGui::AlignTextToFramePadding();
+	ImGui::TextUnformatted("Name:");
 	ImGui::SameLine();
+
+	const float btnW = 72.0f;
+	const float inputW = w - btnW - ImGui::GetStyle().ItemSpacing.x - 42.0f;
+	ImGui::SetNextItemWidth((inputW > 80.0f) ? inputW : 80.0f);
+
+	bool canEdit = (selectedModel != nullptr);
+
+	if (!canEdit) ImGui::BeginDisabled();
+	ImGui::InputText("##RenameModel", renameBuffer, sizeof(renameBuffer));
+	ImGui::SameLine();
+
+	bool doRename = ImGui::Button("Rename", ImVec2(btnW, 0));
+	if (!canEdit) ImGui::EndDisabled();
+
+	if (doRename && selectedModel && renameBuffer[0] != '\0')
+	{
+		selectedModel->SetModelName(renameBuffer);
+		renameBuffer[0] = '\0';
+	}
 
 	if (selectedModel)
 	{
-		std::string deleteText = "Delete " + selectedModel->GetModelName();
-		if (ImGui::Button(deleteText.c_str()))
-		{
+		if (ImGui::Button("Delete", ImVec2(w, 0)))
 			hierarchy.RemoveModel(selectedModel->id);
-		}
 	}
 	else
 	{
 		ImGui::BeginDisabled();
-		ImGui::Button("Delete");
+		ImGui::Button("Delete", ImVec2(w, 0));
 		ImGui::EndDisabled();
 	}
 
 	LoadFilePopup(hierarchy);
 
-	ImGui::End();
+	ImGui::EndChild();
+
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(3);
 }
+
 
 
 void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
