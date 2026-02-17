@@ -21,6 +21,7 @@
 #include "Hierarchy.h"
 
 void createFramebuffer();
+void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& hierachy);
 void rescaleFramebuffer(float width, float height);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -36,8 +37,6 @@ float fps = 0.0f;
 const GLint SCREEN_WIDTH = 800;
 const GLint SCREEN_HEIGHT = 600;
 
-GLuint VAO;
-GLuint VBO;
 GLuint FBO;
 GLuint RBO;
 GLuint textureId;
@@ -45,63 +44,13 @@ GLuint textureId;
 glm::vec3 cameraInitialPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 Camera camera(cameraInitialPosition);
 
-float pitch = 0.0f;
-float yaw = -90.0f;
 float lastX = SCREEN_WIDTH / 2; 
 float lastY = SCREEN_HEIGHT / 2;
 bool isFirstCameraMove = true;
-
 bool isRightMouseButtonHeld = false;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
-std::vector<Vertex> cubeVertices = {
-	// FRONT (+Z)
-	{{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-	{{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-	{{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-	{{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-
-	// BACK (-Z)
-	{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f,-1.0f}, {1.0f, 0.0f}},
-	{{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f,-1.0f}, {1.0f, 1.0f}},
-	{{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f,-1.0f}, {0.0f, 1.0f}},
-	{{ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f,-1.0f}, {0.0f, 0.0f}},
-
-	// LEFT (-X)
-	{{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-	{{-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-	{{-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-	{{-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-
-	// RIGHT (+X)
-	{{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-	{{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-	{{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-	{{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-
-	// TOP (+Y)
-	{{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-	{{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-	{{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-	{{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-
-	// BOTTOM (-Y)
-	{{-0.5f, -0.5f, -0.5f}, {0.0f,-1.0f, 0.0f}, {1.0f, 1.0f}},
-	{{ 0.5f, -0.5f, -0.5f}, {0.0f,-1.0f, 0.0f}, {0.0f, 1.0f}},
-	{{ 0.5f, -0.5f,  0.5f}, {0.0f,-1.0f, 0.0f}, {0.0f, 0.0f}},
-	{{-0.5f, -0.5f,  0.5f}, {0.0f,-1.0f, 0.0f}, {1.0f, 0.0f}},
-};
-
-vector<unsigned int> cubeIndices = {
-	0, 1, 2,  2, 3, 0,        // front
-	4, 5, 6,  6, 7, 4,        // back
-	8, 9,10, 10,11, 8,        // left
-   12,13,14, 14,15,12,        // right
-   16,17,18, 18,19,16,        // top
-   20,21,22, 22,23,20         // bottom
-};
 
 int main() {
 
@@ -153,18 +102,6 @@ int main() {
 	ApplicationUI applicationUI;
 	applicationUI.Initialize(mainWindow);
 
-	shader.useShaderProgram();
-
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	shader.setMat4("model", model);
-
-	glm::mat4 view = glm::mat4(1.0f);
-	shader.setMat4("view", view);
-
-	glm::mat4 projection = glm::mat4(1.0f);
-	shader.setMat4("projection", projection);
-
 	Hierarchy hierachy {};
 
 	Model marcelineModel("C:/Users/User/Downloads/marceline-the-vampire-queen/source/Marceline/Final2.obj", "Marceline", 1);
@@ -211,45 +148,7 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader.useShaderProgram();
-
-		Model* selectedModel = hierachy.GetSelectedModel();
-		vector<Model> models = hierachy.GetModels();
-
-		for (size_t i = 0; i < models.size(); i++) {
-			Model& currentModel = models[i];
-
-			if (selectedModel && currentModel.id == selectedModel->id) {
-				model = glm::mat4(1.0f);
-				model = glm::translate(model, selectedModel->transform.GetPosition());
-				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().x), glm::vec3(1, 0, 0));
-				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().y), glm::vec3(0, 1, 0));
-				model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().z), glm::vec3(0, 0, 1));
-				model = glm::scale(model, glm::vec3(selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().x));
-
-				shader.setMat4("model", model);
-				shader.setVec4("ourColor", selectedModel->material.GetColor());
-			}
-			else {
-				model = currentModel.transform.GetModelMatrix();
-				shader.setMat4("model", model);
-
-			}
-			shader.setVec4("ourColor", currentModel.material.GetColor());
-
-			currentModel.Draw(shader);
-		}
-
-		view = camera.GetViewMatrix();
-		projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
-
-		shader.setMat4("view", view);
-		shader.setMat4("projection", projection);
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glUseProgram(0);
+		renderModels(bufferWidth, bufferHeight, shader, hierachy);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -262,11 +161,48 @@ int main() {
 
 	applicationUI.ShutdownUpImGui();
 
-	// Clean up
 	glfwDestroyWindow(mainWindow);
 	glfwTerminate();
 
 	return 0;
+}
+
+void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& hierachy)
+{
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
+
+	shader.useShaderProgram();
+
+	Model* selectedModel = hierachy.GetSelectedModel();
+	vector<Model> models = hierachy.GetModels();
+
+	for (size_t i = 0; i < models.size(); i++) {
+		Model& currentModel = models[i];
+
+		if (selectedModel && currentModel.id == selectedModel->id) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, selectedModel->transform.GetPosition());
+			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().x), glm::vec3(1, 0, 0));
+			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().y), glm::vec3(0, 1, 0));
+			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().z), glm::vec3(0, 0, 1));
+			model = glm::scale(model, glm::vec3(selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().y, selectedModel->transform.GetScale().z));
+
+			shader.setVec4("ourColor", selectedModel->material.GetColor());
+		}
+		else {
+			model = currentModel.transform.GetModelMatrix();
+		}
+
+		shader.setMat4("model", model);
+		shader.setVec4("ourColor", currentModel.material.GetColor());
+
+		currentModel.Draw(shader);
+	}
+
+	shader.setMat4("view", view);
+	shader.setMat4("projection", projection);
 }
 
 void createFramebuffer() {
