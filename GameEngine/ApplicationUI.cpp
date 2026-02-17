@@ -120,32 +120,58 @@ void ApplicationUI::RenderImGuiViewports() {
 	}
 }
 
-void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy) {
+void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
+{
 	ImGui::Begin("Hierarchy");
 
 	auto& models = hierarchy.GetModels();
 	Model* selectedModel = hierarchy.GetSelectedModel();
 
-	for (size_t i = 0; i < models.size(); i++) {
-
+	for (size_t i = 0; i < models.size(); i++)
+	{
 		Model& model = models[i];
 
 		bool isSelected = (selectedModel && model.id == selectedModel->id);
 
-		if (ImGui::Selectable(model.GetModelName().c_str(), isSelected)) {
+		if (ImGui::Selectable(model.GetModelName().c_str(), isSelected))
 			hierarchy.SetSelectedModel(&model);
-		}
 	}
 
-	ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 20.0f);
+	ImGui::Spacing();
+	ImGui::Separator();
+
+	float footerHeight = ImGui::GetFrameHeightWithSpacing();
+	float remaining = ImGui::GetContentRegionAvail().y - footerHeight;
+
+	if (remaining > 0)
+		ImGui::Dummy(ImVec2(0, remaining));
+
 	if (ImGui::Button("Load Model")) {
 		ImGui::OpenPopup("LoadFilePopup");
+	}
+
+	ImGui::SameLine();
+
+	if (selectedModel)
+	{
+		std::string deleteText = "Delete " + selectedModel->GetModelName();
+		if (ImGui::Button(deleteText.c_str()))
+		{
+			hierarchy.RemoveModel(selectedModel->id);
+		}
+	}
+	else
+	{
+		ImGui::BeginDisabled();
+		ImGui::Button("Delete");
+		ImGui::EndDisabled();
 	}
 
 	LoadFilePopup(hierarchy);
 
 	ImGui::End();
 }
+
 
 void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 	Model* selectedModel = hierarchy.GetSelectedModel();
