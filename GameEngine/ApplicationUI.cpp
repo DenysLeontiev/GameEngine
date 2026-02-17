@@ -217,12 +217,34 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 	Model* selectedModel = hierarchy.GetSelectedModel();
 
 	if (selectedModel) {
+
 		float stepOffset = 0.05f;
 		ImGui::Begin("Settings");
 		ImGui::DragFloat3("position (xyz)", selectedModel->transform.PositionPointer(), stepOffset);
 		ImGui::DragFloat3("rotation (xyz)", selectedModel->transform.RotationPointer(), stepOffset);
 		ImGui::DragFloat3("scale (xyz)", selectedModel->transform.ScalePointer(), stepOffset);
 		ImGui::ColorEdit4("color (rgba)", selectedModel->material.ColorPointer(), stepOffset);
+
+		if (ImGui::Button("Reset Position")) {
+			selectedModel->transform.ResetPosition();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reset Rotation")) {
+			selectedModel->transform.ResetRotation();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reset Scale")) {
+			selectedModel->transform.ResetScale();
+		}
+
+		if (ImGui::Button("Reset All")) {
+			selectedModel->transform.ResetAll();
+		}
+
 		ImGui::End();
 	}
 }

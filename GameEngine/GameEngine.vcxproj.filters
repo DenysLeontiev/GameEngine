@@ -22,9 +22,6 @@
     <Filter Include="Core">
       <UniqueIdentifier>{f7ac6881-89b6-4b77-aab2-ebfd6268020d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Enums">
-      <UniqueIdentifier>{3eb2fcc1-65ed-4399-9146-c10df8ad7601}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -114,7 +111,7 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="UITheme.h">
-      <Filter>Enums</Filter>
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
