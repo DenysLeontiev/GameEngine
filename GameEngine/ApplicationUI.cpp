@@ -299,8 +299,12 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 				if (isRegularFile) {
 					int modelId = hierarchy.GetNextId();
 					string modelName = entryName + "(" + to_string(modelId) + ")";
-					Model newModel(entry.path().string(), modelName, modelId);
-					hierarchy.AddModel(newModel);
+					string modelPath = entry.path().string();
+					Model newModel(modelName, modelId);
+					bool isLoaded = newModel.AttachModel(modelPath);
+					if (isLoaded) {
+						hierarchy.AddModel(newModel);
+					}
 
 					ImGui::EndPopup();
 					return;
