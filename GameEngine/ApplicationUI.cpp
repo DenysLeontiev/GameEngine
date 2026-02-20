@@ -18,6 +18,7 @@ ApplicationUI::ApplicationUI()
 	m_viewportWidth(0.0f),
 	m_viewportHeight(0.0f)
 {
+	uiProjectionMatrix.SetProjectionMatrixMode(ProjectionMatrixMode::Perspective);
 	uiTheme.SetCurrentTheme(Theme::Dark);
 	currentPath = fs::current_path();
 }
@@ -140,7 +141,7 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 
 	DrawHierarchyTaskBar(hierarchy);
 
-	ChangeThemePopup();
+	ChangeThemeDropdown();
 	ImGui::End();
 }
 
@@ -266,6 +267,8 @@ void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
 
 	ImGui::Text("Camera Active: %s", isRMBHeld ? "True" : "False");
 
+	ImGui::SameLine();
+
 	ImGui::End();
 }
 
@@ -320,7 +323,7 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 	}
 }
 
-void ApplicationUI::ChangeThemePopup() {
+void ApplicationUI::ChangeThemeDropdown() {
 	
 	ImGui::Begin("Editor");
 
@@ -355,7 +358,57 @@ void ApplicationUI::ChangeThemePopup() {
 	ImGui::End();
 }
 
-void ApplicationUI::ShutdownUpImGui() {
+void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix,float cameraZoom, int bufferWidth, int bufferHeight) {
+
+	ImGui::Begin("Projection");
+
+	std::string* modes = uiProjectionMatrix.GetAvailableMatrixModes();
+	ProjectionMatrixMode currentMode = uiProjectionMatrix.GetCurrentProjectionMatrixMode();
+
+	if (ImGui::BeginCombo("##ProjectionMode",
+		UIProjectionMatrix::ProjectionModeToString(currentMode).c_str()))
+	{
+		for (int i = 0; i < PROJECTION_MATRIX_COUNT; i++)
+		{
+			bool isSelected = (UIProjectionMatrix::ProjectionModeToString(currentMode) == modes[i]);
+
+			if (ImGui::Selectable(modes[i].c_str(), isSelected))
+			{
+				currentMode = UIProjectionMatrix::StringToProjectionMode(modes[i]);
+				uiProjectionMatrix.SetProjectionMatrixMode(currentMode);
+			}
+		}
+
+		ImGui::EndCombo();
+	}
+
+	currentMode = uiProjectionMatrix.GetCurrentProjectionMatrixMode();
+
+	if (currentMode == ProjectionMatrixMode::Perspective)
+	{
+		projectionMatrix = glm::perspective(
+			glm::radians(cameraZoom),
+			(float)bufferWidth / (float)bufferHeight,
+			0.1f,
+			100.0f
+		);
+	}
+	else if(currentMode == ProjectionMatrixMode::Orthogonal)
+	{
+		float aspectRatio = (float)bufferWidth / (float)bufferHeight;
+		float orthoSize = 10.0f;
+
+		projectionMatrix = glm::ortho(
+			-orthoSize * aspectRatio, orthoSize * aspectRatio,
+			-orthoSize, orthoSize,
+			0.1f, 100.0f
+		);
+	}
+
+	ImGui::End();
+}
+
+void ApplicationUI::ShutdownImGui() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();

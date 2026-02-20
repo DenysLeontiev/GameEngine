@@ -10,6 +10,7 @@
 
 #include "Hierarchy.h"
 #include "UITheme.h"
+#include "UIProjectionMatrix.h"
 
 namespace fs = std::filesystem;
 
@@ -29,15 +30,18 @@ public:
 	void DrawHierarchyTaskBar(Hierarchy& hierarchy);
 	void DrawEditorWindow(Hierarchy& hierarchy);
 	void LoadFilePopup(Hierarchy& hierarchy);
-	void ChangeThemePopup();
+	void ChangeThemeDropdown();
+	void ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix, float cameraZoom, int bufferWidth, int bufferHeight);
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
-	void ShutdownUpImGui();
+	void ShutdownImGui();
 private:
 	ImGuiIO* m_io;
 	float m_viewportWidth;
 	float m_viewportHeight;
 
 	UITheme uiTheme;
+	UIProjectionMatrix uiProjectionMatrix;
+
 	fs::path currentPath {};
 };
 

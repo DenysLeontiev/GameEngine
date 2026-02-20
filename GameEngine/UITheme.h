@@ -34,6 +34,8 @@ public:
 				return "Light";
 			case Theme::Classic:
 				return "Classic";
+			default:
+				return "Classic";
 		}
 	}
 
@@ -52,7 +54,6 @@ public:
 	}
 
 private:
-
 	std::string availableThemes[THEME_COUNT] { ThemeToString(Theme::Dark), ThemeToString(Theme::Light), ThemeToString(Theme::Classic)};
 
 	Theme currentTheme;

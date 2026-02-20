@@ -52,6 +52,8 @@ bool isRightMouseButtonHeld = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+ApplicationUI applicationUI;
+
 int main() {
 
 	if (!glfwInit()) {
@@ -99,7 +101,6 @@ int main() {
 
 	createFramebuffer();
 
-	ApplicationUI applicationUI;
 	applicationUI.Initialize(mainWindow);
 
 	Hierarchy hierachy {};
@@ -153,7 +154,7 @@ int main() {
 		glfwPollEvents();
 	}
 
-	applicationUI.ShutdownUpImGui();
+	applicationUI.ShutdownImGui();
 
 	glfwDestroyWindow(mainWindow);
 	glfwTerminate();
@@ -165,7 +166,10 @@ void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& 
 {
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)bufferWidth / (GLfloat)bufferHeight, 0.1f, 100.0f);
+
+	glm::mat4 projection = glm::mat4(1.0f);
+	applicationUI.ChangeProjectionMatrixDropdown(projection, camera.zoom, bufferWidth, bufferHeight);
+
 
 	shader.useShaderProgram();
 
