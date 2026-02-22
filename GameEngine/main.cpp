@@ -173,36 +173,36 @@ void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& 
 
 	shader.useShaderProgram();
 
-	Entity* selectedModel = hierachy.GetSelectedEntity();
-	vector<Entity>& models = hierachy.GetEntities();
+	Entity* selectedEntity = hierachy.GetSelectedEntity();
+	vector<Entity>& entities = hierachy.GetEntities();
 
-	for (size_t i = 0; i < models.size(); i++) {
-		Entity& currentModel = models[i];
+	for (size_t i = 0; i < entities.size(); i++) {
+		Entity& currentEntity = entities[i];
 
-		if (selectedModel && currentModel.GetId() == selectedModel->GetId()) {
+		if (selectedEntity && currentEntity.GetId() == selectedEntity->GetId()) {
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, selectedModel->transform.GetPosition());
-			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().x), glm::vec3(1, 0, 0));
-			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().y), glm::vec3(0, 1, 0));
-			model = glm::rotate(model, glm::radians(selectedModel->transform.GetRotation().z), glm::vec3(0, 0, 1));
-			model = glm::scale(model, glm::vec3(selectedModel->transform.GetScale().x, selectedModel->transform.GetScale().y, selectedModel->transform.GetScale().z));
+			model = glm::translate(model, selectedEntity->transform.GetPosition());
+			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().x), glm::vec3(1, 0, 0));
+			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().y), glm::vec3(0, 1, 0));
+			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().z), glm::vec3(0, 0, 1));
+			model = glm::scale(model, glm::vec3(selectedEntity->transform.GetScale().x, selectedEntity->transform.GetScale().y, selectedEntity->transform.GetScale().z));
 
-			if (selectedModel->HasMaterial()) {
-				shader.setVec4("ourColor", selectedModel->material.GetColor());
+			if (selectedEntity->HasMaterial()) {
+				shader.setVec4("ourColor", selectedEntity->material.GetColor());
 			}
 		}
 		else {
-			model = currentModel.transform.GetModelMatrix();
+			model = currentEntity.transform.GetModelMatrix();
 		}
 
 		shader.setMat4("model", model);
 
-		if (currentModel.HasMaterial()) {
-			shader.setVec4("ourColor", currentModel.material.GetColor());
+		if (currentEntity.HasMaterial()) {
+			shader.setVec4("ourColor", currentEntity.material.GetColor());
 		}
 
-		if (currentModel.HasModel()) {
-			currentModel.model.Draw(shader);
+		if (currentEntity.HasModel()) {
+			currentEntity.model.Draw(shader);
 		}
 	}
 
