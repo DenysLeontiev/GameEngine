@@ -116,5 +116,8 @@
     <ClInclude Include="UIProjectionMatrix.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

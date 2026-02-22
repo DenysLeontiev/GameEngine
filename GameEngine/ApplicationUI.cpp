@@ -126,17 +126,17 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 {
 	ImGui::Begin("Hierarchy");
 
-	auto& models = hierarchy.GetModels();
-	Model* selectedModel = hierarchy.GetSelectedModel();
+	auto& entities = hierarchy.GetEntities();
+	Entity* selectedModel = hierarchy.GetSelectedEntity();
 
-	for (size_t i = 0; i < models.size(); i++)
+	for (size_t i = 0; i < entities.size(); i++)
 	{
-		Model& model = models[i];
+		Entity& entity = entities[i];
 
-		bool isSelected = (selectedModel && model.id == selectedModel->id);
+		bool isSelected = (selectedModel && entity.GetId() == selectedModel->GetId());
 
-		if (ImGui::Selectable(model.GetModelName().c_str(), isSelected))
-			hierarchy.SetSelectedModel(&model);
+		if (ImGui::Selectable(entity.GetName().c_str(), isSelected))
+			hierarchy.SetSelectedEntity(&entity);
 	}
 
 	DrawHierarchyTaskBar(hierarchy);
@@ -147,7 +147,7 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 
 void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 {
-	Model* selectedModel = hierarchy.GetSelectedModel();
+	Entity* selectedEntity = hierarchy.GetSelectedEntity();
 
 	const float barHeight = 74.0f;
 
@@ -177,7 +177,7 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 	const float inputW = w - btnW - ImGui::GetStyle().ItemSpacing.x - 42.0f;
 	ImGui::SetNextItemWidth((inputW > 80.0f) ? inputW : 80.0f);
 
-	bool canEdit = (selectedModel != nullptr);
+	bool canEdit = (selectedEntity != nullptr);
 
 	if (!canEdit) {
 		ImGui::BeginDisabled();
@@ -191,14 +191,14 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 		ImGui::EndDisabled();
 	}
 
-	if (doRename && selectedModel && renameBuffer[0] != '\0') {
-		selectedModel->SetModelName(renameBuffer);
+	if (doRename && selectedEntity && renameBuffer[0] != '\0') {
+		selectedEntity->SetName(renameBuffer);
 		renameBuffer[0] = '\0';
 	}
 
-	if (selectedModel) {
+	if (selectedEntity) {
 		if (ImGui::Button("Delete", ImVec2(w, 0)))
-			hierarchy.RemoveModel(selectedModel->id);
+			hierarchy.RemoveEntity(selectedEntity->GetId());
 	}
 	else {
 		ImGui::BeginDisabled();
@@ -215,35 +215,38 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 }
 
 void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
-	Model* selectedModel = hierarchy.GetSelectedModel();
+	Entity* selectedEntity = hierarchy.GetSelectedEntity();
 
-	if (selectedModel) {
+	if (selectedEntity) {
 
 		float stepOffset = 0.05f;
 		ImGui::Begin("Settings");
-		ImGui::DragFloat3("position (xyz)", selectedModel->transform.PositionPointer(), stepOffset);
-		ImGui::DragFloat3("rotation (xyz)", selectedModel->transform.RotationPointer(), stepOffset);
-		ImGui::DragFloat3("scale (xyz)", selectedModel->transform.ScalePointer(), stepOffset);
-		ImGui::ColorEdit4("color (rgba)", selectedModel->material.ColorPointer(), stepOffset);
+		ImGui::DragFloat3("position (xyz)", selectedEntity->transform.PositionPointer(), stepOffset);
+		ImGui::DragFloat3("rotation (xyz)", selectedEntity->transform.RotationPointer(), stepOffset);
+		ImGui::DragFloat3("scale (xyz)", selectedEntity->transform.ScalePointer(), stepOffset);
+
+		if (selectedEntity->HasMaterial()) {
+			ImGui::ColorEdit4("color (rgba)", selectedEntity->material.ColorPointer(), stepOffset);
+		}
 
 		if (ImGui::Button("Reset Position")) {
-			selectedModel->transform.ResetPosition();
+			selectedEntity->transform.ResetPosition();
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Reset Rotation")) {
-			selectedModel->transform.ResetRotation();
+			selectedEntity->transform.ResetRotation();
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Reset Scale")) {
-			selectedModel->transform.ResetScale();
+			selectedEntity->transform.ResetScale();
 		}
 
 		if (ImGui::Button("Reset All")) {
-			selectedModel->transform.ResetAll();
+			selectedEntity->transform.ResetAll();
 		}
 
 		ImGui::End();
@@ -303,10 +306,14 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 					int modelId = hierarchy.GetNextId();
 					string modelName = entryName + "(" + to_string(modelId) + ")";
 					string modelPath = entry.path().string();
-					Model newModel(modelName, modelId);
+
+					Model newModel;
 					bool isLoaded = newModel.AttachModel(modelPath);
+
 					if (isLoaded) {
-						hierarchy.AddModel(newModel);
+						Material entityMaterial;
+						Entity entity(newModel, entityMaterial, modelId, modelName);
+						hierarchy.AddEntity(entity);
 					}
 
 					ImGui::EndPopup();

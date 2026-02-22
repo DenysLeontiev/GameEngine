@@ -33,19 +33,12 @@ public:
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
-    Transform transform;
-    Material material;
     string directory;
     bool gammaCorrection;
 
-    int id;
-    string name;
-
     // constructor, expects a filepath to a 3D model.
-    Model(string const& name = "", int id = -1, bool gamma = false) : gammaCorrection(gamma)
+    Model(bool gamma = false) : gammaCorrection(gamma)
     {
-        this->name = name;
-        this->id = id;
     }
 
     // draws the model, and thus all its meshes
@@ -58,14 +51,6 @@ public:
     bool AttachModel(string const& path) {
         bool isModelSuccessfullyLoaded = loadModel(path);
         return isModelSuccessfullyLoaded;
-    }
-
-    string GetModelName() const {
-        return name;
-    }
-
-    void SetModelName(string modelName) {
-        name = modelName;
     }
 
 private:

@@ -3,50 +3,52 @@
 
 #include <vector>
 #include "Model.h"
+#include "Entity.h"
 
 class Hierarchy {
 public:
-	std::vector<Model>& GetModels() {
-		return models;
+	std::vector<Entity>& GetEntities() {
+		return entities;
 	}
 
-	const std::vector<Model>& GetModels() const {
-		return models;
+	const std::vector<Entity>& GetEntities() const {
+		return entities;
 	}
 
-	void AddModel(const Model& model) {
-		models.push_back(model);
+	void AddEntity(const Entity& entity) {
+		entities.push_back(entity);
 	}
 
-	void RemoveModel(int id) {
-		if (selectedModel && selectedModel->id == id)
-			selectedModel = nullptr;
+	void RemoveEntity(int id) {
+		if (selectedEntity && selectedEntity->GetId() == id) {
+			selectedEntity = nullptr;
+		}
 
-		models.erase(
-			std::remove_if(models.begin(), models.end(),
-				[id](const Model& m) { return m.id == id; }),
-			models.end()
+		entities.erase(
+			std::remove_if(entities.begin(), entities.end(),
+				[id](const Entity& m) { return m.GetId() == id; }),
+			entities.end()
 		);
 	}
 
-	Model* GetSelectedModel() const {
-		return selectedModel;
+	Entity* GetSelectedEntity() const {
+		return selectedEntity;
 	}
 
-	void SetSelectedModel(Model* model) {
-		selectedModel = model;
+	void SetSelectedEntity(Entity* entity) {
+		selectedEntity = entity;
 	}
 
 	int GetNextId() const {
-		int currentSize = models.size();
+		int currentSize = entities.size();
 		currentSize++;
 		return currentSize;
 	}
 
 private:
-	std::vector<Model> models;
+	std::vector<Entity> entities;
 
-	Model* selectedModel = nullptr;
+	Entity* selectedEntity = nullptr;
 };
 
 #endif 

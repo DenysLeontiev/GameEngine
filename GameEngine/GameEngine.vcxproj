@@ -162,6 +162,7 @@
     <ClInclude Include="..\External\imgui\imstb_truetype.h" />
     <ClInclude Include="ApplicationUI.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
