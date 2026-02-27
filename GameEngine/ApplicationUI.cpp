@@ -19,8 +19,14 @@ ApplicationUI::ApplicationUI()
 	m_viewportHeight(0.0f)
 {
 	uiProjectionMatrix.SetProjectionMatrixMode(ProjectionMatrixMode::Perspective);
-	uiTheme.SetCurrentTheme(Theme::Dark);
-	currentPath = fs::current_path();
+	uiTheme.SetCurrentTheme(Theme::DarkMode);
+
+	if (defaultPath.empty()) {
+		currentPath = fs::current_path();
+	}
+	else {
+		currentPath = defaultPath;
+	}
 }
 
 void ApplicationUI::Initialize(GLFWwindow* mainWindow) {
@@ -168,6 +174,12 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 		ImGui::OpenPopup("LoadFilePopup");
 	}
 
+	if (ImGui::Button("Point Light", ImVec2(w, 0))) {
+
+		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", "assets/shapes/primitives/cube/cube.obj");
+		hierarchy.AddEntity(pointLightEntity);
+	}
+
 	static char renameBuffer[256] = "";
 	ImGui::AlignTextToFramePadding();
 	ImGui::TextUnformatted("Name:");
@@ -220,33 +232,80 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 	if (selectedEntity) {
 
 		float stepOffset = 0.05f;
+
 		ImGui::Begin("Settings");
-		ImGui::DragFloat3("position (xyz)", selectedEntity->transform.PositionPointer(), stepOffset);
-		ImGui::DragFloat3("rotation (xyz)", selectedEntity->transform.RotationPointer(), stepOffset);
-		ImGui::DragFloat3("scale (xyz)", selectedEntity->transform.ScalePointer(), stepOffset);
+
+		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			ImGui::DragFloat3("position (xyz)", selectedEntity->transform.PositionPointer(), stepOffset);
+			ImGui::DragFloat3("rotation (xyz)", selectedEntity->transform.RotationPointer(), stepOffset);
+			ImGui::DragFloat3("scale (xyz)", selectedEntity->transform.ScalePointer(), stepOffset);
+
+			if (ImGui::Button("Reset Position")) {
+				selectedEntity->transform.ResetPosition();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset Rotation")) {
+				selectedEntity->transform.ResetRotation();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset Scale")) {
+				selectedEntity->transform.ResetScale();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset Transform")) {
+				selectedEntity->transform.ResetAll();
+			}
+		}
 
 		if (selectedEntity->HasMaterial()) {
-			ImGui::ColorEdit4("color (rgba)", selectedEntity->material.ColorPointer(), stepOffset);
+			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+				ImGui::ColorEdit4("color (rgba)", selectedEntity->material.ColorPointer());
+			}
 		}
 
-		if (ImGui::Button("Reset Position")) {
-			selectedEntity->transform.ResetPosition();
-		}
+		if (selectedEntity->HasLight()) {
+			if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-		ImGui::SameLine();
+				Light& selectedLight = selectedEntity->light;
 
-		if (ImGui::Button("Reset Rotation")) {
-			selectedEntity->transform.ResetRotation();
-		}
+				float minScrollValue = 0.0f;
+				float maxScrollValue = 1.0f;
+				float scrollOffset = 0.01f;
 
-		ImGui::SameLine();
+				ImGui::DragFloat3("ambient (rgb)", selectedLight.AmbientPointer(), scrollOffset, minScrollValue, maxScrollValue);
+				ImGui::DragFloat3("diffuse (rgb)", selectedLight.DiffusePointer(), scrollOffset, minScrollValue, maxScrollValue);
+				ImGui::DragFloat3("specular (rgb)", selectedLight.SpecularPointer(), scrollOffset, minScrollValue, maxScrollValue);
 
-		if (ImGui::Button("Reset Scale")) {
-			selectedEntity->transform.ResetScale();
-		}
+				if (ImGui::Button("Reset Ambient")) {
+					selectedLight.ResetAmbient();
+				}
 
-		if (ImGui::Button("Reset All")) {
-			selectedEntity->transform.ResetAll();
+				ImGui::SameLine();
+
+				if (ImGui::Button("Reset Diffuse")) {
+					selectedLight.ResetDiffuse();
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Reset Specular")) {
+					selectedLight.ResetSpecular();
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Reset Light")) {
+					selectedLight.ResetAll();
+				}
+			}
 		}
 
 		ImGui::End();
@@ -303,8 +362,6 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 				}
 
 				if (isRegularFile) {
-					int modelId = hierarchy.GetNextId();
-					string modelName = entryName + "(" + to_string(modelId) + ")";
 					string modelPath = entry.path().string();
 
 					Model newModel;
@@ -312,7 +369,7 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 
 					if (isLoaded) {
 						Material entityMaterial;
-						Entity entity(newModel, entityMaterial, modelId, modelName);
+						Entity entity(newModel, entityMaterial, entryName);
 						hierarchy.AddEntity(entity);
 					}
 
@@ -346,13 +403,13 @@ void ApplicationUI::ChangeThemeDropdown() {
 				uiTheme.SetCurrentTheme(currentTheme);
 
 				switch (currentTheme) {
-					case Theme::Dark:
+					case Theme::DarkMode:
 						ImGui::StyleColorsDark();
 						break;
-					case Theme::Light:
+					case Theme::LightMode:
 						ImGui::StyleColorsLight();
 						break;
-					case Theme::Classic:
+					case Theme::ClassicMode:
 						ImGui::StyleColorsClassic();
 						break;
 				}

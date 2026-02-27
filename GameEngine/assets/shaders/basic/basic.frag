@@ -1,12 +1,54 @@
-#version 330
+#version 330 core
+	
+struct Material {
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+	
+	float shininess;
+};
+
+struct Light {
+	vec3 position;
+	
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+uniform Material material;
+uniform Light light;	
 	
 out vec4 FragColor;
 
 in vec2 texCoords;
+in vec3 FragmentWorldPosition;
+in vec3 Normal;
 
-uniform vec4 ourColor;
 uniform sampler2D ourTexture;
 
+uniform vec3 viewPosition;
+
 void main() {
-	FragColor = texture(ourTexture, texCoords) * ourColor;
+
+	// Ambient lightning
+	vec3 ambient = light.ambient * material.ambient;
+	
+	// Diffuse lightning
+	vec3 norm = normalize(Normal);
+	vec3 lightDir = normalize(light.position - FragmentWorldPosition); // pointing from fragment to lightPos
+	float diff = max(dot(norm, lightDir), 0.0f);
+	vec3 diffuse = light.diffuse * (diff * material.diffuse);
+	
+	// Specular lighting
+	vec3 viewDir = normalize(viewPosition - FragmentWorldPosition);
+	vec3 reflectedDir = reflect(-lightDir, norm);
+	float spec = pow(max(dot(viewDir, reflectedDir), 0.0f), material.shininess);
+	vec3 specular = light.specular * (spec *  material.specular);
+	
+	
+	
+	vec3 resultColor = (ambient + diffuse + specular);
+
+	FragColor = texture(ourTexture, texCoords) * vec4(resultColor, 1.0f);
 }

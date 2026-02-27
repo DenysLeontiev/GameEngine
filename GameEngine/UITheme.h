@@ -4,9 +4,9 @@
 #include <string>
 
 enum Theme {
-	Dark = 0,
-	Light = 1,
-	Classic = 2,
+	DarkMode = 0,
+	LightMode = 1,
+	ClassicMode = 2,
 
 	THEME_COUNT = 3
 };
@@ -28,11 +28,11 @@ public:
 
 	static std::string ThemeToString(Theme theme) {
 		switch (theme) {
-			case Theme::Dark:
+			case Theme::DarkMode:
 				return "Dark";
-			case Theme::Light:
+			case Theme::LightMode:
 				return "Light";
-			case Theme::Classic:
+			case Theme::ClassicMode:
 				return "Classic";
 			default:
 				return "Classic";
@@ -40,21 +40,21 @@ public:
 	}
 
 	static Theme StringToTheme(std::string theme) {
-		if (theme == ThemeToString(Theme::Dark)) {
-			return Theme::Dark;
+		if (theme == ThemeToString(Theme::DarkMode)) {
+			return Theme::DarkMode;
 		}
-		else if (theme == ThemeToString(Theme::Light)) {
-			return Theme::Light;
+		else if (theme == ThemeToString(Theme::LightMode)) {
+			return Theme::LightMode;
 		}
-		else if (theme == ThemeToString(Theme::Classic)) {
-			return Theme::Classic;
+		else if (theme == ThemeToString(Theme::ClassicMode)) {
+			return Theme::ClassicMode;
 		}
 
-		return Theme::Dark;
+		return Theme::DarkMode;
 	}
 
 private:
-	std::string availableThemes[THEME_COUNT] { ThemeToString(Theme::Dark), ThemeToString(Theme::Light), ThemeToString(Theme::Classic)};
+	std::string availableThemes[THEME_COUNT] { ThemeToString(Theme::DarkMode), ThemeToString(Theme::LightMode), ThemeToString(Theme::ClassicMode)};
 
 	Theme currentTheme;
 };

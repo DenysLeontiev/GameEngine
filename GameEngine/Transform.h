@@ -23,12 +23,24 @@ public:
 		return position;
 	}
 
+	void SetPosition(glm::vec3 newPosition) {
+		position = newPosition;
+	}
+
 	glm::vec3 GetRotation() const {
 		return rotation;
 	}
 
+	void SetRotation(glm::vec3 newRotation) {
+		rotation = newRotation;
+	}
+
 	glm::vec3 GetScale() const {
 		return scale;
+	}
+
+	void SetScale(glm::vec3 newScale) {
+		scale = newScale;
 	}
 
 	glm::mat4 GetModelMatrix() const {

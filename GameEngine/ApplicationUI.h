@@ -43,5 +43,6 @@ private:
 	UIProjectionMatrix uiProjectionMatrix;
 
 	fs::path currentPath {};
+	fs::path defaultPath{"C:/BlenderModels/marceline-the-vampire-queen/source/Marceline"};
 };
 

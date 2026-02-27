@@ -15,7 +15,16 @@ public:
 		return entities;
 	}
 
-	void AddEntity(const Entity& entity) {
+	void AddEntity(Entity& entity) {
+		int id = GetNextId();
+		entity.SetId(id);
+
+		string currentName = entity.GetName();
+		string modelName = currentName + "(" + to_string(id) + ")";
+		entity.SetName(modelName);
+
+		selectedEntity = nullptr; // reset selection when we add new entity
+
 		entities.push_back(entity);
 	}
 

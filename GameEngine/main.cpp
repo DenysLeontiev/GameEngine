@@ -21,7 +21,6 @@
 #include "Hierarchy.h"
 
 void createFramebuffer();
-void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& hierachy);
 void rescaleFramebuffer(float width, float height);
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -29,6 +28,9 @@ void mouseCallback(GLFWwindow* window, double currentX, double currentY);
 void mouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void processInput(GLFWwindow* window);
+
+void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualShader,
+	glm::mat4 view, glm::mat4 projection, glm::vec3 cameraPosition);
 
 static float fpsTimer = 0.0f;
 static int frameCount = 0;
@@ -53,6 +55,10 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 ApplicationUI applicationUI;
+
+glm::mat4 model = glm::mat4(1.0f);
+glm::mat4 view = glm::mat4(1.0f);
+glm::mat4 projection = glm::mat4(1.0f);
 
 int main() {
 
@@ -92,7 +98,8 @@ int main() {
 		return 1;
 	}
 
-	Shader shader("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag");
+	Shader lightVisualShader("assets/shaders/light/light.vert", "assets/shaders/light/light.frag");
+	Shader modelShader("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag");
 
 	int bufferWidth = 0;
 	int bufferHeight = 0;
@@ -143,7 +150,10 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		renderModels(bufferWidth, bufferHeight, shader, hierachy);
+		view = camera.GetViewMatrix();
+		applicationUI.ChangeProjectionMatrixDropdown(projection, camera.zoom, bufferWidth, bufferHeight);
+
+		renderScene(hierachy, modelShader, lightVisualShader, view, projection, camera.cameraPosition);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -162,52 +172,72 @@ int main() {
 	return 0;
 }
 
-void renderModels(int bufferWidth, int bufferHeight, Shader& shader, Hierarchy& hierachy)
-{
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat4 view = camera.GetViewMatrix();
+void setLightUniforms(Shader& shader, Entity& lightEntity) {
+	// Make sure light position is synced with transform
+	lightEntity.UpdateLightPosition();
 
-	glm::mat4 projection = glm::mat4(1.0f);
-	applicationUI.ChangeProjectionMatrixDropdown(projection, camera.zoom, bufferWidth, bufferHeight);
+	Light& light = lightEntity.light;
 
+	shader.setVec3("light.position", light.GetPosition());
+	shader.setVec3("light.ambient", light.GetAmbient());
+	shader.setVec3("light.diffuse", light.GetDiffuse());
+	shader.setVec3("light.specular", light.GetSpecular());
+}
 
-	shader.useShaderProgram();
+void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualShader,
+	glm::mat4 view, glm::mat4 projection, glm::vec3 cameraPosition) {
 
-	Entity* selectedEntity = hierachy.GetSelectedEntity();
-	vector<Entity>& entities = hierachy.GetEntities();
-
-	for (size_t i = 0; i < entities.size(); i++) {
-		Entity& currentEntity = entities[i];
-
-		if (selectedEntity && currentEntity.GetId() == selectedEntity->GetId()) {
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, selectedEntity->transform.GetPosition());
-			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().x), glm::vec3(1, 0, 0));
-			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().y), glm::vec3(0, 1, 0));
-			model = glm::rotate(model, glm::radians(selectedEntity->transform.GetRotation().z), glm::vec3(0, 0, 1));
-			model = glm::scale(model, glm::vec3(selectedEntity->transform.GetScale().x, selectedEntity->transform.GetScale().y, selectedEntity->transform.GetScale().z));
-
-			if (selectedEntity->HasMaterial()) {
-				shader.setVec4("ourColor", selectedEntity->material.GetColor());
-			}
-		}
-		else {
-			model = currentEntity.transform.GetModelMatrix();
-		}
-
-		shader.setMat4("model", model);
-
-		if (currentEntity.HasMaterial()) {
-			shader.setVec4("ourColor", currentEntity.material.GetColor());
-		}
-
-		if (currentEntity.HasModel()) {
-			currentEntity.model.Draw(shader);
+	Entity* activeLight = nullptr;
+	for (Entity& entity : hierarchy.GetEntities()) {
+		if (entity.IsLight()) {
+			activeLight = &entity;
+			break;
 		}
 	}
 
-	shader.setMat4("view", view);
-	shader.setMat4("projection", projection);
+	modelShader.useShaderProgram();
+	modelShader.setMat4("view", view);
+	modelShader.setMat4("projection", projection);
+	modelShader.setVec3("viewPosition", cameraPosition);
+
+	if (activeLight != nullptr) {
+		setLightUniforms(modelShader, *activeLight);
+	}
+
+	for (Entity& entity : hierarchy.GetEntities()) {
+		if (entity.HasModel() && !entity.IsLight()) {
+			if (entity.HasMaterial()) {
+				glm::vec3 albedo = glm::vec3(entity.material.GetColor());
+				modelShader.setVec3("material.ambient", 0.1f * albedo);
+				modelShader.setVec3("material.diffuse", albedo);
+				modelShader.setVec3("material.specular", glm::vec3(0.5f));
+				modelShader.setFloat("material.shininess", 32.0f);
+			} else {
+				modelShader.setVec3("material.ambient", glm::vec3(0.1f));
+				modelShader.setVec3("material.diffuse", glm::vec3(1.0f));
+				modelShader.setVec3("material.specular", glm::vec3(0.5f));
+				modelShader.setFloat("material.shininess", 32.0f);
+			}
+
+			glm::mat4 modelMatrix = entity.transform.GetModelMatrix();
+			modelShader.setMat4("model", modelMatrix);
+
+			entity.model.Draw(modelShader);
+		}
+	}
+
+	lightVisualShader.useShaderProgram();
+	lightVisualShader.setMat4("view", view);
+	lightVisualShader.setMat4("projection", projection);
+
+	for (Entity& entity : hierarchy.GetEntities()) {
+		if (entity.IsLight() && entity.HasModel()) {
+			glm::mat4 modelMatrix = entity.transform.GetModelMatrix();
+			lightVisualShader.setMat4("model", modelMatrix);
+
+			entity.model.Draw(lightVisualShader);
+		}
+	}
 }
 
 void createFramebuffer() {
