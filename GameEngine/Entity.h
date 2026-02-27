@@ -5,6 +5,7 @@
 
 #include "Light.h"
 #include "Model.h"
+#include "Consts.h"
 
 using namespace std;
 
@@ -106,7 +107,7 @@ public:
         }
     }
 
-    static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = "assets/shapes/primitives/cube/cube.obj") {
+    static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = Consts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);

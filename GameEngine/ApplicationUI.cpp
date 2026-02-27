@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "Model.h"
+#include "Consts.h"
 
 namespace fs = std::filesystem;
 
@@ -176,7 +177,7 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 
 	if (ImGui::Button("Point Light", ImVec2(w, 0))) {
 
-		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", "assets/shapes/primitives/cube/cube.obj");
+		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", Consts::POINT_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(pointLightEntity);
 	}
 

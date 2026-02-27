@@ -98,8 +98,8 @@ int main() {
 		return 1;
 	}
 
-	Shader lightVisualShader("assets/shaders/light/light.vert", "assets/shaders/light/light.frag");
-	Shader modelShader("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag");
+	Shader lightVisualShader(Consts::LIGHT_VERTEX_SHADER_PATH, Consts::LIGHT_FRAGMENT_SHADER_PATH);
+	Shader modelShader(Consts::MODEL_VERTEX_SHADER_PATH, Consts::MODEL_FRAGMENT_SHADER_PATH);
 
 	int bufferWidth = 0;
 	int bufferHeight = 0;

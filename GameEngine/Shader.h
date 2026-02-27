@@ -12,10 +12,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
 class Shader {
 public:
 	unsigned int shaderProgramId;
+
+	Shader(const std::string& vertexPath, const std::string& fragmentPath) 
+		:Shader(vertexPath.c_str(), fragmentPath.c_str()) { }
 
 	Shader(const char* vertexPath, const char* fragmentPath) {
 		std::string vertexCode;

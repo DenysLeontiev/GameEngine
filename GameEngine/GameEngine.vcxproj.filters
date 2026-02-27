@@ -22,6 +22,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{f7ac6881-89b6-4b77-aab2-ebfd6268020d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Helpers">
+      <UniqueIdentifier>{830602b2-433e-42b5-b3ca-b005952fc7cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -121,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Consts.h">
+      <Filter>Helpers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
