@@ -112,6 +112,11 @@ int main() {
 
 	Hierarchy hierachy {};
 
+	modelShader.useShaderProgram();
+	modelShader.setFloat("light.constant", 1.0f);
+	modelShader.setFloat("light.linear", 0.022f);
+	modelShader.setFloat("light.quadratic", 0.0019f);
+
 	while (!glfwWindowShouldClose(mainWindow)) {
 
 		processInput(mainWindow);
