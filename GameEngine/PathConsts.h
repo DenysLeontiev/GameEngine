@@ -1,11 +1,12 @@
-#ifndef CONSTS_H
-#define CONSTS_H
+#ifndef PATH_CONSTS_H
+#define PATH_CONSTS_H
 
 #include <string>
 
-class Consts {
+class PathConsts {
 public:
-	static inline const std::string POINT_LIGHT_VISUAL_PATH = "assets/shapes/primitives/cube/cube.obj";
+	static inline const std::string DIRECTIONAL_LIGHT_VISUAL_PATH = "assets/shapes/primitives/cube/cube.obj";
+	static inline const std::string POINT_LIGHT_VISUAL_PATH = "assets/shapes/primitives/sphere/sphere.obj";
 
 	// Lighting models use these shaders, so they are not affect by itself
 	static inline const std::string LIGHT_VERTEX_SHADER_PATH = "assets/shaders/light/light.vert";

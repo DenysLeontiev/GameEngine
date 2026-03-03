@@ -125,7 +125,7 @@
     <ClInclude Include="Light.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Consts.h">
+    <ClInclude Include="PathConsts.h">
       <Filter>Helpers</Filter>
     </ClInclude>
   </ItemGroup>

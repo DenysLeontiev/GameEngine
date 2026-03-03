@@ -5,7 +5,7 @@
 
 #include "Light.h"
 #include "Model.h"
-#include "Consts.h"
+#include "PathConsts.h"
 
 using namespace std;
 
@@ -118,7 +118,7 @@ public:
         }
     }
 
-    static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = Consts::POINT_LIGHT_VISUAL_PATH) {
+    static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);
@@ -131,7 +131,7 @@ public:
         return lightEntity;
     }
 
-    static Entity CreateDirectionalLight(const string entityName = "Directional Light", const string path = Consts::POINT_LIGHT_VISUAL_PATH) {
+    static Entity CreateDirectionalLight(const string entityName = "Directional Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Directional);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);

@@ -7,7 +7,7 @@
 #include <filesystem>
 
 #include "Model.h"
-#include "Consts.h"
+#include "PathConsts.h"
 
 namespace fs = std::filesystem;
 
@@ -176,13 +176,13 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 	}
 
 	if (ImGui::Button("Directional Light", ImVec2(w, 0))) {
-		Entity directionalLightEntity = Entity::CreateDirectionalLight("Directional Light", Consts::POINT_LIGHT_VISUAL_PATH);
+		Entity directionalLightEntity = Entity::CreateDirectionalLight("Directional Light", PathConsts::DIRECTIONAL_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(directionalLightEntity);
 	}
 
 	if (ImGui::Button("Point Light", ImVec2(w, 0))) {
 
-		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", Consts::POINT_LIGHT_VISUAL_PATH);
+		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", PathConsts::POINT_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(pointLightEntity);
 	}
 

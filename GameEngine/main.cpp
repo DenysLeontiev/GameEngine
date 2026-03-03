@@ -98,8 +98,8 @@ int main() {
 		return 1;
 	}
 
-	Shader lightVisualShader(Consts::LIGHT_VERTEX_SHADER_PATH, Consts::LIGHT_FRAGMENT_SHADER_PATH);
-	Shader modelShader(Consts::MODEL_VERTEX_SHADER_PATH, Consts::MODEL_FRAGMENT_SHADER_PATH);
+	Shader lightVisualShader(PathConsts::LIGHT_VERTEX_SHADER_PATH, PathConsts::LIGHT_FRAGMENT_SHADER_PATH);
+	Shader modelShader(PathConsts::MODEL_VERTEX_SHADER_PATH, PathConsts::MODEL_FRAGMENT_SHADER_PATH);
 
 	int bufferWidth = 0;
 	int bufferHeight = 0;
