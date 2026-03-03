@@ -4,7 +4,8 @@
 #include <glm/glm.hpp>
 
 enum LightType {
-	Point
+	Point,
+	Directional
 };
 
 class Light {
@@ -16,6 +17,10 @@ public:
 
 	Light(LightType type) {
 		this->type = type;
+	}
+
+	LightType GetLightType() const {
+		return type;
 	}
 
 	float* AmbientPointer() {
@@ -30,12 +35,44 @@ public:
 		return &specular.x;
 	}
 
+	float* ConstantPointer(){
+		return &constant;
+	}
+
+	float* LinearPointer(){
+		return &linear;
+	}
+
+	float* QuadraticPointer() {
+		return &quadratic;
+	}
+
+	float GetConstant() const {
+		return constant;
+	}
+
+	float GetLinear() const {
+		return linear;
+	}
+	float GetQuadratic() const {
+		return quadratic;
+	}
+
+
 	glm::vec3 GetPosition() const {
 		return position;
 	}
 
 	void SetPosition(glm::vec3 position) {
 		this->position = position;
+	}
+
+	glm::vec3 GetDirection() const {
+		return direction;
+	}
+
+	void SetDirection(glm::vec3 dir) {
+		direction = dir;
 	}
 
 	glm::vec3 GetAmbient() const {
@@ -82,10 +119,11 @@ public:
 
 private:
 
-	inline static glm::vec3 AMBIENT_DEFAULT = glm::vec3(0.2f, 0.2f, 0.2f);
+	inline static glm::vec3 AMBIENT_DEFAULT = glm::vec3(1.0f, 1.0f, 1.0f);
 	inline static glm::vec3 DIFFUSE_DEFAULT = glm::vec3(1.0f, 1.0f, 1.0f);
 	inline static glm::vec3 SPECULAR_DEFAULT = glm::vec3(1.0f, 1.0f, 1.0f);
 	inline static glm::vec3 POSITION_DEFAULT = glm::vec3(0.0f, 0.0f, 0.0f);
+	inline static glm::vec3 DIRECTION_DEFAULT = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	LightType type;
 
@@ -94,6 +132,13 @@ private:
 	glm::vec3 ambient = AMBIENT_DEFAULT;
 	glm::vec3 diffuse = DIFFUSE_DEFAULT;
 	glm::vec3 specular = SPECULAR_DEFAULT;
+
+	glm::vec3 direction = DIRECTION_DEFAULT;
+
+	float constant = 1.0f;
+	float linear = 0.022f;
+	float quadratic = 0.0019f;
+
 };
 
 #endif

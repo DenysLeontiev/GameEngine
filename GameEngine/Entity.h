@@ -101,14 +101,38 @@ public:
         return entityType;
     }
 
-    void UpdateLightPosition() {
+    void UpdateLightProperties() {
         if (hasLight) {
             light.SetPosition(transform.GetPosition());
+
+            if (light.GetLightType() == LightType::Directional) {
+                glm::vec3 rot = transform.GetRotation();
+                glm::vec3 dir{};
+                dir.x = cos(glm::radians(rot.y)) * cos(glm::radians(rot.x));
+                dir.y = sin(glm::radians(rot.x));
+                dir.z = sin(glm::radians(rot.y)) * cos(glm::radians(rot.x));
+                dir = glm::normalize(dir);
+
+                light.SetDirection(dir);
+            }
         }
     }
 
     static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = Consts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
+        Model lightModel;
+        bool isLoaded = lightModel.AttachModel(path);
+        if (!isLoaded) {
+            std::cout << "Error loading model for lights \n";
+        }
+
+        Entity lightEntity(light, lightModel, entityName);
+
+        return lightEntity;
+    }
+
+    static Entity CreateDirectionalLight(const string entityName = "Directional Light", const string path = Consts::POINT_LIGHT_VISUAL_PATH) {
+        Light light(LightType::Directional);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);
         if (!isLoaded) {

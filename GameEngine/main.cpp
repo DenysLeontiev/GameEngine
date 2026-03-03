@@ -112,11 +112,6 @@ int main() {
 
 	Hierarchy hierachy {};
 
-	modelShader.useShaderProgram();
-	modelShader.setFloat("light.constant", 1.0f);
-	modelShader.setFloat("light.linear", 0.022f);
-	modelShader.setFloat("light.quadratic", 0.0019f);
-
 	while (!glfwWindowShouldClose(mainWindow)) {
 
 		processInput(mainWindow);
@@ -177,26 +172,27 @@ int main() {
 	return 0;
 }
 
-void setLightUniforms(Shader& shader, Entity& lightEntity) {
-	// Make sure light position is synced with transform
-	lightEntity.UpdateLightPosition();
-
-	Light& light = lightEntity.light;
-
-	shader.setVec3("light.position", light.GetPosition());
-	shader.setVec3("light.ambient", light.GetAmbient());
-	shader.setVec3("light.diffuse", light.GetDiffuse());
-	shader.setVec3("light.specular", light.GetSpecular());
-}
 
 void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualShader,
 	glm::mat4 view, glm::mat4 projection, glm::vec3 cameraPosition) {
 
-	Entity* activeLight = nullptr;
-	for (Entity& entity : hierarchy.GetEntities()) {
-		if (entity.IsLight()) {
-			activeLight = &entity;
-			break;
+	vector<Entity>& entities = hierarchy.GetEntities();
+
+	std::vector<Light> directionalLights;
+	std::vector<Light> pointLights;
+
+	for (Entity& e : entities) {
+		if (!e.IsLight()) {
+			continue;
+		}
+
+		e.UpdateLightProperties();
+
+		if (e.light.GetLightType() == LightType::Directional) {
+			directionalLights.push_back(e.light);
+		}
+		else if (e.light.GetLightType() == LightType::Point) {
+			pointLights.push_back(e.light);
 		}
 	}
 
@@ -205,11 +201,10 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 	modelShader.setMat4("projection", projection);
 	modelShader.setVec3("viewPosition", cameraPosition);
 
-	if (activeLight != nullptr) {
-		setLightUniforms(modelShader, *activeLight);
-	}
+	modelShader.setInt("numberOfDirectionalLights", directionalLights.size());
+	modelShader.setInt("numberOfPointLights", pointLights.size());
 
-	for (Entity& entity : hierarchy.GetEntities()) {
+	for (Entity& entity : entities) {
 		if (entity.HasModel() && !entity.IsLight()) {
 			if (entity.HasMaterial()) {
 				glm::vec3 albedo = glm::vec3(entity.material.GetColor());
@@ -229,6 +224,27 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 
 			entity.model.Draw(modelShader);
 		}
+	}
+
+	for (int i = 0; i < pointLights.size(); ++i) {
+		const auto& L = pointLights[i];
+		std::string base = "pointLights[" + std::to_string(i) + "]";
+		modelShader.setVec3(base + ".position", L.GetPosition());
+		modelShader.setVec3(base + ".ambient", L.GetAmbient());
+		modelShader.setVec3(base + ".diffuse", L.GetDiffuse());
+		modelShader.setVec3(base + ".specular", L.GetSpecular());
+		modelShader.setFloat(base + ".constant", L.GetConstant());  // add these members
+		modelShader.setFloat(base + ".linear", L.GetLinear());
+		modelShader.setFloat(base + ".quadratic", L.GetQuadratic());
+	}
+
+	for (int i = 0; i < directionalLights.size(); ++i) {
+		const auto& L = directionalLights[i];
+		std::string base = "directionalLights[" + std::to_string(i) + "]";
+		modelShader.setVec3(base + ".direction", L.GetDirection()); // add direction to Light
+		modelShader.setVec3(base + ".ambient", L.GetAmbient());
+		modelShader.setVec3(base + ".diffuse", L.GetDiffuse());
+		modelShader.setVec3(base + ".specular", L.GetSpecular());
 	}
 
 	lightVisualShader.useShaderProgram();
