@@ -48,6 +48,9 @@ public:
         this->hasLight = true;
         this->entityType = EntityType::LightEntity;
 
+        this->transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
+        this->transform.SetInitialScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
+
         // Light position comes from transform
         this->transform.SetPosition(lightSource.GetPosition());
     }
@@ -61,6 +64,10 @@ public:
         this->hasMaterial = false;
         this->hasLight = true;
         this->entityType = EntityType::LightEntity;
+
+        this->transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
+        this->transform.SetInitialScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
+
 
         this->transform.SetPosition(lightSource.GetPosition());
     }
@@ -129,8 +136,6 @@ public:
 
         Entity lightEntity(light, lightModel, entityName);
 
-        lightEntity.transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
-
         return lightEntity;
     }
 
@@ -143,8 +148,6 @@ public:
         }
 
         Entity lightEntity(light, lightModel, entityName);
-
-        lightEntity.transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
 
         return lightEntity;
     }
