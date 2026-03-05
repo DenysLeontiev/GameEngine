@@ -121,12 +121,15 @@ public:
     static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
         Model lightModel;
+
         bool isLoaded = lightModel.AttachModel(path);
         if (!isLoaded) {
             std::cout << "Error loading model for lights \n";
         }
 
         Entity lightEntity(light, lightModel, entityName);
+
+        lightEntity.transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
 
         return lightEntity;
     }
@@ -140,6 +143,8 @@ public:
         }
 
         Entity lightEntity(light, lightModel, entityName);
+
+        lightEntity.transform.SetScale(Light::LIGHT_MODEL_DEFAULT_SIZE);
 
         return lightEntity;
     }

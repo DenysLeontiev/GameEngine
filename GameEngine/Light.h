@@ -117,6 +117,8 @@ public:
 		ResetSpecular();
 	}
 
+	inline static glm::vec3 LIGHT_MODEL_DEFAULT_SIZE = glm::vec3(0.2f, 0.2f, 0.2f); 
+
 private:
 
 	inline static glm::vec3 AMBIENT_DEFAULT = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -124,6 +126,7 @@ private:
 	inline static glm::vec3 SPECULAR_DEFAULT = glm::vec3(1.0f, 1.0f, 1.0f);
 	inline static glm::vec3 POSITION_DEFAULT = glm::vec3(0.0f, 0.0f, 0.0f);
 	inline static glm::vec3 DIRECTION_DEFAULT = glm::vec3(0.0f, 0.0f, 0.0f);
+
 
 	LightType type;
 
