@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum Theme {
+enum class Theme {
 	DarkMode = 0,
 	LightMode = 1,
 	ClassicMode = 2,
@@ -54,7 +54,7 @@ public:
 	}
 
 private:
-	std::string availableThemes[THEME_COUNT] { ThemeToString(Theme::DarkMode), ThemeToString(Theme::LightMode), ThemeToString(Theme::ClassicMode)};
+	std::string availableThemes[static_cast<int>(Theme::THEME_COUNT)] { ThemeToString(Theme::DarkMode), ThemeToString(Theme::LightMode), ThemeToString(Theme::ClassicMode)};
 
 	Theme currentTheme;
 };

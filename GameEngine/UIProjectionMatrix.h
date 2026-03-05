@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum ProjectionMatrixMode {
+enum class ProjectionMatrixMode {
 	Perspective = 0,
 	Orthogonal = 1,
 
@@ -56,7 +56,7 @@ public:
 	}
 
 private:
-	std::string availableMatrices[PROJECTION_MATRIX_COUNT] = {
+	std::string availableMatrices[static_cast<int>(ProjectionMatrixMode::PROJECTION_MATRIX_COUNT)] = {
 		ProjectionModeToString(ProjectionMatrixMode::Perspective), 
 		ProjectionModeToString(ProjectionMatrixMode::Orthogonal) 
 	};

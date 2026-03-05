@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-enum LightType {
+enum class LightType {
 	Point,
 	Directional
 };
@@ -11,7 +11,7 @@ enum LightType {
 class Light {
 public:
 
-	Light() :type(Point) {
+	Light() :type(LightType::Point) {
 
 	}
 

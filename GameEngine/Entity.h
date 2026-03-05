@@ -9,7 +9,7 @@
 
 using namespace std;
 
-enum EntityType {
+enum class EntityType {
     Empty,
     ModelEntity,
     LightEntity

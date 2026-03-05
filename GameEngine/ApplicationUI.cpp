@@ -408,7 +408,7 @@ void ApplicationUI::ChangeThemeDropdown() {
 	Theme currentTheme = uiTheme.GetCurrentTheme();
 
 	if (ImGui::BeginCombo("##Theme", UITheme::ThemeToString(currentTheme).c_str())) {
-		for (size_t i = 0; i < THEME_COUNT; i++) {
+		for (size_t i = 0; i < static_cast<int>(Theme::THEME_COUNT); i++) {
 			bool isSelected = UITheme::ThemeToString(currentTheme) == themes[i];
 
 			if (ImGui::Selectable((themes[i]).c_str(), isSelected)) {
@@ -445,7 +445,7 @@ void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix,f
 	if (ImGui::BeginCombo("##ProjectionMode",
 		UIProjectionMatrix::ProjectionModeToString(currentMode).c_str()))
 	{
-		for (int i = 0; i < PROJECTION_MATRIX_COUNT; i++)
+		for (int i = 0; i < static_cast<int>(ProjectionMatrixMode::PROJECTION_MATRIX_COUNT); i++)
 		{
 			bool isSelected = (UIProjectionMatrix::ProjectionModeToString(currentMode) == modes[i]);
 

@@ -356,22 +356,22 @@ void processInput(GLFWwindow* window) {
 			? MOVEMENT_SPEED_MULTIPLIER : 1.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(FORWARD, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::FORWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(BACKWARD, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::BACKWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(RIGHT, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::RIGHT, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(LEFT, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::LEFT, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(UPWARD, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::UPWARD, deltaTime, speedMultiplier);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			camera.ProcessKeyboardInput(DOWNWARD, deltaTime, speedMultiplier);
+			camera.ProcessKeyboardInput(CameraMovement::DOWNWARD, deltaTime, speedMultiplier);
 		}
 	}
 }

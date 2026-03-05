@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-enum CameraMovement {
+enum class CameraMovement {
 	FORWARD,
 	BACKWARD,
 	RIGHT,
@@ -72,12 +72,12 @@ public:
 	void ProcessKeyboardInput(CameraMovement dir, float deltaTime, float speedMultiplier = 1.0f) {
 		float velocity = movementSpeed * deltaTime * speedMultiplier;
 
-		if (dir == FORWARD)  cameraPosition += cameraDirection * velocity;
-		if (dir == BACKWARD) cameraPosition -= cameraDirection * velocity;
-		if (dir == RIGHT)    cameraPosition += cameraRight * velocity;
-		if (dir == LEFT)     cameraPosition -= cameraRight * velocity;
-		if (dir == UPWARD)   cameraPosition += cameraUp * velocity;
-		if (dir == DOWNWARD) cameraPosition -= cameraUp * velocity;
+		if (dir == CameraMovement::FORWARD)  cameraPosition += cameraDirection * velocity;
+		if (dir == CameraMovement::BACKWARD) cameraPosition -= cameraDirection * velocity;
+		if (dir == CameraMovement::RIGHT)    cameraPosition += cameraRight * velocity;
+		if (dir == CameraMovement::LEFT)     cameraPosition -= cameraRight * velocity;
+		if (dir == CameraMovement::UPWARD)   cameraPosition += cameraUp * velocity;
+		if (dir == CameraMovement::DOWNWARD) cameraPosition -= cameraUp * velocity;
 	}
 
 	void ProcessMouseInput(float xOffset, float yOffset, GLboolean constrainPitch = true) {
