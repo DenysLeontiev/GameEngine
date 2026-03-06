@@ -180,6 +180,7 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 
 	std::vector<Light> directionalLights;
 	std::vector<Light> pointLights;
+	std::vector<Light> spotLights;
 
 	for (Entity& e : entities) {
 		if (!e.IsLight()) {
@@ -194,6 +195,9 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 		else if (e.light.GetLightType() == LightType::Point) {
 			pointLights.push_back(e.light);
 		}
+		else if (e.light.GetLightType() == LightType::Spot) {
+			spotLights.push_back(e.light);
+		}
 	}
 
 	modelShader.useShaderProgram();
@@ -203,6 +207,7 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 
 	modelShader.setInt("numberOfDirectionalLights", directionalLights.size());
 	modelShader.setInt("numberOfPointLights", pointLights.size());
+	modelShader.setInt("numberOfSpotLights", spotLights.size());
 
 	for (Entity& entity : entities) {
 		if (entity.HasModel() && !entity.IsLight()) {
@@ -230,18 +235,40 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 		const auto& L = pointLights[i];
 		std::string base = "pointLights[" + std::to_string(i) + "]";
 		modelShader.setVec3(base + ".position", L.GetPosition());
+
+		modelShader.setFloat(base + ".constant", L.GetConstant());
+		modelShader.setFloat(base + ".linear", L.GetLinear());
+		modelShader.setFloat(base + ".quadratic", L.GetQuadratic());
+
 		modelShader.setVec3(base + ".ambient", L.GetAmbient());
 		modelShader.setVec3(base + ".diffuse", L.GetDiffuse());
 		modelShader.setVec3(base + ".specular", L.GetSpecular());
-		modelShader.setFloat(base + ".constant", L.GetConstant());  // add these members
-		modelShader.setFloat(base + ".linear", L.GetLinear());
-		modelShader.setFloat(base + ".quadratic", L.GetQuadratic());
 	}
 
 	for (int i = 0; i < directionalLights.size(); ++i) {
 		const auto& L = directionalLights[i];
 		std::string base = "directionalLights[" + std::to_string(i) + "]";
-		modelShader.setVec3(base + ".direction", L.GetDirection()); // add direction to Light
+		modelShader.setVec3(base + ".direction", L.GetDirection());
+
+		modelShader.setVec3(base + ".ambient", L.GetAmbient());
+		modelShader.setVec3(base + ".diffuse", L.GetDiffuse());
+		modelShader.setVec3(base + ".specular", L.GetSpecular());
+	}
+
+	for (int i = 0; i < spotLights.size(); i++)
+	{
+		const auto& L = spotLights[i];
+		std::string base = "spotLights[" + std::to_string(i) + "]";
+		modelShader.setVec3(base + ".direction", L.GetDirection());
+		modelShader.setVec3(base + ".position", L.GetPosition());
+
+		modelShader.setFloat(base + ".cutOff", glm::cos(glm::radians(L.GetCutOffAngle())));
+		modelShader.setFloat(base + ".outerCutOff", glm::cos(glm::radians(L.GetOuterCutOffAngle())));
+
+		modelShader.setFloat(base + ".constant", L.GetConstant());
+		modelShader.setFloat(base + ".linear", L.GetLinear());
+		modelShader.setFloat(base + ".quadratic", L.GetQuadratic());
+
 		modelShader.setVec3(base + ".ambient", L.GetAmbient());
 		modelShader.setVec3(base + ".diffuse", L.GetDiffuse());
 		modelShader.setVec3(base + ".specular", L.GetSpecular());

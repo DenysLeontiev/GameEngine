@@ -156,7 +156,7 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 {
 	Entity* selectedEntity = hierarchy.GetSelectedEntity();
 
-	const float barHeight = 130.0f;
+	const float barHeight = 156.0f; // each button is 26
 
 	ImGui::SetCursorPosY(ImGui::GetWindowHeight() - barHeight);
 
@@ -184,6 +184,11 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 
 		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", PathConsts::POINT_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(pointLightEntity);
+	}
+
+	if (ImGui::Button("Spot Light", ImVec2(w, 0))) {
+		Entity spotLightEntity = Entity::CreateSpotLightEntity("Spot Light", PathConsts::SPOT_LIGHT_VISUAL_PATH);
+		hierarchy.AddEntity(spotLightEntity);
 	}
 
 	static char renameBuffer[256] = "";
@@ -291,10 +296,15 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 				ImGui::DragFloat3("diffuse (rgb)", selectedLight.DiffusePointer(), scrollOffset, minScrollValue, maxScrollValue);
 				ImGui::DragFloat3("specular (rgb)", selectedLight.SpecularPointer(), scrollOffset, minScrollValue, maxScrollValue);
 
-				if (selectedLight.GetLightType() == LightType::Point) {
+				if (selectedLight.GetLightType() == LightType::Point || selectedLight.GetLightType() == LightType::Spot) {
 					ImGui::DragFloat("constant", selectedLight.ConstantPointer(), 0.01f, 0.0f, 10.0f);
 					ImGui::DragFloat("linear", selectedLight.LinearPointer(), 0.001f, 0.0f, 1.0f);
 					ImGui::DragFloat("quadratic", selectedLight.QuadraticPointer(), 0.0001f, 0.0f, 1.0f);
+				}
+
+				if (selectedLight.GetLightType() == LightType::Spot) {
+					ImGui::DragFloat("cutOff", selectedLight.CutOffAnglePointer(), 0.01f, 0.0f, 360.0f);
+					ImGui::DragFloat("outerCutOff", selectedLight.OuterCutOffAnglePointer(), 0.01f, 0.0f, 360.0f);
 				}
 
 				if (ImGui::Button("Reset Ambient")) {

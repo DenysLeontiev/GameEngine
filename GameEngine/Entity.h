@@ -7,8 +7,6 @@
 #include "Model.h"
 #include "PathConsts.h"
 
-using namespace std;
-
 enum class EntityType {
     Empty,
     ModelEntity,
@@ -113,25 +111,40 @@ public:
             light.SetPosition(transform.GetPosition());
 
             if (light.GetLightType() == LightType::Directional) {
-                glm::vec3 rot = transform.GetRotation();
-                glm::vec3 dir{};
-                dir.x = cos(glm::radians(rot.y)) * cos(glm::radians(rot.x));
-                dir.y = sin(glm::radians(rot.x));
-                dir.z = sin(glm::radians(rot.y)) * cos(glm::radians(rot.x));
-                dir = glm::normalize(dir);
+                glm::mat4 rot = glm::mat4(1.0f);
+                glm::vec3 r = transform.GetRotation();
+                rot = glm::rotate(rot, glm::radians(r.x), glm::vec3(1, 0, 0));
+                rot = glm::rotate(rot, glm::radians(r.y), glm::vec3(0, 1, 0));
+                rot = glm::rotate(rot, glm::radians(r.z), glm::vec3(0, 0, 1));
 
+                glm::vec3 dir = glm::normalize(glm::vec3(rot * glm::vec4(0, -1, 0, 0)));
                 light.SetDirection(dir);
+            }
+            else if (light.GetLightType() == LightType::Spot) {
+                // Because spot light`s visual is cone so we make sure it look like that light comes from cone`s tip
+
+                glm::mat4 rot = glm::mat4(1.0f);
+                glm::vec3 r = transform.GetRotation();
+                rot = glm::rotate(rot, glm::radians(r.x), glm::vec3(1, 0, 0));
+                rot = glm::rotate(rot, glm::radians(r.y), glm::vec3(0, 1, 0));
+                rot = glm::rotate(rot, glm::radians(r.z), glm::vec3(0, 0, 1));
+
+                glm::vec3 dir = glm::normalize(glm::vec3(rot * glm::vec4(0, 1, 0, 0)));
+                light.SetDirection(dir);
+
+                glm::vec3 tipOffset = glm::vec3(rot * glm::vec4(0, transform.GetScale().y, 0, 0));
+                light.SetPosition(transform.GetPosition() + tipOffset);
             }
         }
     }
 
-    static Entity CreatePointLightEntity(const string entityName = "Point Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
+    static Entity CreatePointLightEntity(const string& entityName = "Point Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
         Model lightModel;
 
         bool isLoaded = lightModel.AttachModel(path);
         if (!isLoaded) {
-            std::cout << "Error loading model for lights \n";
+            std::cout << "Error loading model for Point Light \n";
         }
 
         Entity lightEntity(light, lightModel, entityName);
@@ -139,12 +152,25 @@ public:
         return lightEntity;
     }
 
-    static Entity CreateDirectionalLight(const string entityName = "Directional Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
+    static Entity CreateDirectionalLight(const string& entityName = "Directional Light", const string path = PathConsts::DIRECTIONAL_LIGHT_VISUAL_PATH) {
         Light light(LightType::Directional);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);
         if (!isLoaded) {
-            std::cout << "Error loading model for lights \n";
+            std::cout << "Error loading model for Directional Light \n";
+        }
+
+        Entity lightEntity(light, lightModel, entityName);
+
+        return lightEntity;
+    }
+
+    static Entity CreateSpotLightEntity(const string& entityName = "Spot Light", const string path = PathConsts::SPOT_LIGHT_VISUAL_PATH) {
+        Light light(LightType::Spot);
+        Model lightModel;
+        bool isLoaded = lightModel.AttachModel(path);
+        if (!isLoaded) {
+            std::cout << "Error loading model for Spot Light \n";
         }
 
         Entity lightEntity(light, lightModel, entityName);

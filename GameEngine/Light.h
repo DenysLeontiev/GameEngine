@@ -5,7 +5,8 @@
 
 enum class LightType {
 	Point,
-	Directional
+	Directional,
+	Spot
 };
 
 class Light {
@@ -47,6 +48,14 @@ public:
 		return &quadratic;
 	}
 
+	float* CutOffAnglePointer() {
+		return &cutOffAngle;
+	}
+
+	float* OuterCutOffAnglePointer() {
+		return &outerCutOffAngle;
+	}
+
 	float GetConstant() const {
 		return constant;
 	}
@@ -54,10 +63,18 @@ public:
 	float GetLinear() const {
 		return linear;
 	}
+
 	float GetQuadratic() const {
 		return quadratic;
 	}
 
+	float GetCutOffAngle() const {
+		return cutOffAngle;
+	}
+
+	float GetOuterCutOffAngle() const {
+		return outerCutOffAngle;
+	}
 
 	glm::vec3 GetPosition() const {
 		return position;
@@ -142,6 +159,8 @@ private:
 	float linear = 0.022f;
 	float quadratic = 0.0019f;
 
+	float cutOffAngle = 12.5f;
+	float outerCutOffAngle = 17.5f;
 };
 
 #endif
