@@ -72,7 +72,14 @@ uniform sampler2D ourTexture;
 
 uniform vec3 viewPosition;
 
+uniform bool applyLights = true;
+
 void main() {
+
+	if(applyLights == false) {
+		FragColor = texture(ourTexture, texCoords) * vec4(material.diffuse, 1.0f);
+		return;
+	}
 
 	vec3 normal = normalize(Normal);
 	vec3 viewDirection = normalize(viewPosition - FragmentWorldPosition);

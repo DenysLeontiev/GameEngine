@@ -31,7 +31,7 @@ public:
 	void DrawEditorWindow(Hierarchy& hierarchy);
 	void LoadFilePopup(Hierarchy& hierarchy);
 	void ChangeThemeDropdown();
-	void ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix, float cameraZoom, int bufferWidth, int bufferHeight);
+	void ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix, float cameraZoom, int bufferWidth, int bufferHeight, bool& applyLights);
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
 	void ShutdownImGui();
 private:

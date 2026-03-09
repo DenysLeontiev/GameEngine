@@ -54,6 +54,8 @@ bool isRightMouseButtonHeld = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool applyLights = true;
+
 ApplicationUI applicationUI;
 
 glm::mat4 model = glm::mat4(1.0f);
@@ -151,7 +153,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		view = camera.GetViewMatrix();
-		applicationUI.ChangeProjectionMatrixDropdown(projection, camera.zoom, bufferWidth, bufferHeight);
+		applicationUI.ChangeProjectionMatrixDropdown(projection, camera.zoom, bufferWidth, bufferHeight, applyLights);
 
 		renderScene(hierachy, modelShader, lightVisualShader, view, projection, camera.cameraPosition);
 
@@ -204,6 +206,7 @@ void renderScene(Hierarchy& hierarchy, Shader& modelShader, Shader& lightVisualS
 	modelShader.setMat4("view", view);
 	modelShader.setMat4("projection", projection);
 	modelShader.setVec3("viewPosition", cameraPosition);
+	modelShader.setBool("applyLights", applyLights);
 
 	modelShader.setInt("numberOfDirectionalLights", directionalLights.size());
 	modelShader.setInt("numberOfPointLights", pointLights.size());

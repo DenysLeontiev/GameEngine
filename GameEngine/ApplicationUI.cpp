@@ -445,7 +445,8 @@ void ApplicationUI::ChangeThemeDropdown() {
 	ImGui::End();
 }
 
-void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix,float cameraZoom, int bufferWidth, int bufferHeight) {
+void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix, 
+	float cameraZoom, int bufferWidth, int bufferHeight, bool& applyLights) {
 
 	ImGui::Begin("Projection");
 
@@ -491,6 +492,8 @@ void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix,f
 			0.1f, 100.0f
 		);
 	}
+
+	if (ImGui::Checkbox("Apply Lights", &applyLights)) { }
 
 	ImGui::End();
 }
