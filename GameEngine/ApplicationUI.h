@@ -23,7 +23,7 @@ public:
 	void BeginFrame();
 	void EndFrame();
 	void DrawFramebuffer(GLint textureId);
-	void UpdateViewportSize();
+	void UpdateViewportSize() const;
 	void SetupDockspace();
 	void RenderImGuiViewports();
 	void DrawHierarchy(Hierarchy& hierarchy);

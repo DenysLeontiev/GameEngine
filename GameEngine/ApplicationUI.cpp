@@ -8,6 +8,7 @@
 
 #include "Model.h"
 #include "PathConsts.h"
+#include "UIConsts.h"
 
 namespace fs = std::filesystem;
 
@@ -20,7 +21,7 @@ ApplicationUI::ApplicationUI()
 	m_viewportHeight(0.0f)
 {
 	uiProjectionMatrix.SetProjectionMatrixMode(ProjectionMatrixMode::Perspective);
-	uiTheme.SetCurrentTheme(Theme::DarkMode);
+	uiTheme.SetCurrentTheme(Theme::Modern);
 
 	if (defaultPath.empty()) {
 		currentPath = fs::current_path();
@@ -39,7 +40,7 @@ void ApplicationUI::Initialize(GLFWwindow* mainWindow) {
 	// Enable docking - this must be done during initialization, BEFORE the backends
 	m_io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	
-	ImGui::StyleColorsDark();
+	UITheme::ApplyModernStyle();
 	ImGui_ImplGlfw_InitForOpenGL(mainWindow, true);
 	const char* openGlVersion = "#version 330";
 	ImGui_ImplOpenGL3_Init(openGlVersion);
@@ -114,7 +115,7 @@ void ApplicationUI::DrawFramebuffer(GLint textureId) {
 	ImGui::PopStyleVar();
 }
 
-void ApplicationUI::UpdateViewportSize() {
+void ApplicationUI::UpdateViewportSize() const {
 	// Just set the viewport for rendering
 	glViewport(0, 0, static_cast<GLsizei>(m_viewportWidth), static_cast<GLsizei>(m_viewportHeight));
 }
@@ -136,16 +137,34 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 	auto& entities = hierarchy.GetEntities();
 	Entity* selectedModel = hierarchy.GetSelectedEntity();
 
+	ImGui::TextDisabled("ENTITIES");
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	float listHeight = ImGui::GetContentRegionAvail().y - UIConsts::HIERARCHY_FOOTER_HEIGHT;
+	if (listHeight < UIConsts::HIERARCHY_MIN_LIST_HEIGHT) listHeight = UIConsts::HIERARCHY_MIN_LIST_HEIGHT;
+
+	ImGui::BeginChild("##EntityList", ImVec2(0, listHeight), false);
 	for (size_t i = 0; i < entities.size(); i++)
 	{
 		Entity& entity = entities[i];
-
 		bool isSelected = (selectedModel && entity.GetId() == selectedModel->GetId());
 
-		if (ImGui::Selectable(entity.GetName().c_str(), isSelected))
-			hierarchy.SetSelectedEntity(&entity);
-	}
+		std::string label;
+		if (entity.IsLight()) {
+			label = "* " + entity.GetName();
+		}
+		else {
+			label = "  " + entity.GetName();
+		}
 
+		if (ImGui::Selectable(label.c_str(), isSelected)) {
+			hierarchy.SetSelectedEntity(&entity);
+		}
+	}
+	ImGui::EndChild();
+
+	ImGui::Spacing();
 	DrawHierarchyTaskBar(hierarchy);
 
 	ChangeThemeDropdown();
@@ -156,60 +175,57 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 {
 	Entity* selectedEntity = hierarchy.GetSelectedEntity();
 
-	const float barHeight = 156.0f; // each button is 26
-
-	ImGui::SetCursorPosY(ImGui::GetWindowHeight() - barHeight);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 6));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
-
-	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-
-	ImGui::BeginChild("##HierarchyFooter", ImVec2(0, barHeight), false,
-		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
 	const float w = ImGui::GetContentRegionAvail().x;
 
-	if (ImGui::Button("Load", ImVec2(w, 0))) {
+	ImGui::PushStyleColor(ImGuiCol_Button, UIConsts::ACCENT_BUTTON);
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, UIConsts::ACCENT_BUTTON_HOVERED);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, UIConsts::ACCENT_BUTTON_ACTIVE);
+	if (ImGui::Button("Load Model", ImVec2(w, 0))) {
 		ImGui::OpenPopup("LoadFilePopup");
 	}
+	ImGui::PopStyleColor(3);
 
-	if (ImGui::Button("Directional Light", ImVec2(w, 0))) {
+	ImGui::Spacing();
+
+	ImGui::TextDisabled("ADD LIGHTS");
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	float halfW = (w - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+
+	if (ImGui::Button("Directional", ImVec2(halfW, 0))) {
 		Entity directionalLightEntity = Entity::CreateDirectionalLight("Directional Light", PathConsts::DIRECTIONAL_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(directionalLightEntity);
 	}
-
-	if (ImGui::Button("Point Light", ImVec2(w, 0))) {
-
+	ImGui::SameLine();
+	if (ImGui::Button("Point", ImVec2(halfW, 0))) {
 		Entity pointLightEntity = Entity::CreatePointLightEntity("Point Light", PathConsts::POINT_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(pointLightEntity);
 	}
 
-	if (ImGui::Button("Spot Light", ImVec2(w, 0))) {
+	if (ImGui::Button("Spot", ImVec2(w, 0))) {
 		Entity spotLightEntity = Entity::CreateSpotLightEntity("Spot Light", PathConsts::SPOT_LIGHT_VISUAL_PATH);
 		hierarchy.AddEntity(spotLightEntity);
 	}
 
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+
 	static char renameBuffer[256] = "";
-	ImGui::AlignTextToFramePadding();
-	ImGui::TextUnformatted("Name:");
-	ImGui::SameLine();
-
-	const float btnW = 72.0f;
-	const float inputW = w - btnW - ImGui::GetStyle().ItemSpacing.x - 42.0f;
-	ImGui::SetNextItemWidth((inputW > 80.0f) ? inputW : 80.0f);
-
 	bool canEdit = (selectedEntity != nullptr);
 
 	if (!canEdit) {
 		ImGui::BeginDisabled();
 	}
 
+	const float btnW = UIConsts::RENAME_BUTTON_WIDTH;
+	const float inputW = w - btnW - ImGui::GetStyle().ItemSpacing.x;
+	ImGui::SetNextItemWidth((inputW > UIConsts::RENAME_INPUT_MIN_WIDTH) ? inputW : UIConsts::RENAME_INPUT_MIN_WIDTH);
 	ImGui::InputText("##RenameModel", renameBuffer, sizeof(renameBuffer));
 	ImGui::SameLine();
-
 	bool doRename = ImGui::Button("Rename", ImVec2(btnW, 0));
+
 	if (!canEdit) {
 		ImGui::EndDisabled();
 	}
@@ -219,10 +235,15 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 		renameBuffer[0] = '\0';
 	}
 
+	ImGui::Spacing();
 	if (selectedEntity) {
+		ImGui::PushStyleColor(ImGuiCol_Button, UIConsts::DANGER_BUTTON);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, UIConsts::DANGER_BUTTON_HOVERED);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, UIConsts::DANGER_BUTTON_ACTIVE);
 		if (ImGui::Button("Delete", ImVec2(w, 0))) {
 			hierarchy.RemoveEntity(selectedEntity->GetId());
 		}
+		ImGui::PopStyleColor(3);
 	}
 	else {
 		ImGui::BeginDisabled();
@@ -231,108 +252,129 @@ void ApplicationUI::DrawHierarchyTaskBar(Hierarchy& hierarchy)
 	}
 
 	LoadFilePopup(hierarchy);
-
-	ImGui::EndChild();
-
-	ImGui::PopStyleColor();
-	ImGui::PopStyleVar(3);
 }
 
 void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 	Entity* selectedEntity = hierarchy.GetSelectedEntity();
 
-	if (selectedEntity) {
+	ImGui::Begin("Settings");
 
-		float stepOffset = 0.05f;
-
-		ImGui::Begin("Settings");
-
-		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-			ImGui::DragFloat3("position (xyz)", selectedEntity->transform.PositionPointer(), stepOffset);
-			ImGui::DragFloat3("rotation (xyz)", selectedEntity->transform.RotationPointer(), stepOffset);
-			ImGui::DragFloat3("scale (xyz)", selectedEntity->transform.ScalePointer(), stepOffset);
-
-			if (ImGui::Button("Reset Position")) {
-				selectedEntity->transform.ResetPosition();
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Button("Reset Rotation")) {
-				selectedEntity->transform.ResetRotation();
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Button("Reset Scale")) {
-				selectedEntity->transform.ResetScale();
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Button("Reset Transform")) {
-				selectedEntity->transform.ResetAll();
-			}
-		}
-
-		if (selectedEntity->HasMaterial()) {
-			if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-				ImGui::ColorEdit4("color (rgba)", selectedEntity->material.ColorPointer());
-			}
-		}
-
-		if (selectedEntity->HasLight()) {
-			if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-				Light& selectedLight = selectedEntity->light;
-
-				float minScrollValue = 0.0f;
-				float maxScrollValue = 1.0f;
-				float scrollOffset = 0.01f;
-
-				ImGui::DragFloat3("ambient (rgb)", selectedLight.AmbientPointer(), scrollOffset, minScrollValue, maxScrollValue);
-				ImGui::DragFloat3("diffuse (rgb)", selectedLight.DiffusePointer(), scrollOffset, minScrollValue, maxScrollValue);
-				ImGui::DragFloat3("specular (rgb)", selectedLight.SpecularPointer(), scrollOffset, minScrollValue, maxScrollValue);
-
-				if (selectedLight.GetLightType() == LightType::Point || selectedLight.GetLightType() == LightType::Spot) {
-					ImGui::DragFloat("constant", selectedLight.ConstantPointer(), 0.01f, 0.0f, 10.0f);
-					ImGui::DragFloat("linear", selectedLight.LinearPointer(), 0.001f, 0.0f, 1.0f);
-					ImGui::DragFloat("quadratic", selectedLight.QuadraticPointer(), 0.0001f, 0.0f, 1.0f);
-				}
-
-				if (selectedLight.GetLightType() == LightType::Spot) {
-					ImGui::DragFloat("cutOff", selectedLight.CutOffAnglePointer(), 0.01f, 0.0f, 360.0f);
-					ImGui::DragFloat("outerCutOff", selectedLight.OuterCutOffAnglePointer(), 0.01f, 0.0f, 360.0f);
-				}
-
-				if (ImGui::Button("Reset Ambient")) {
-					selectedLight.ResetAmbient();
-				}
-
-				ImGui::SameLine();
-
-				if (ImGui::Button("Reset Diffuse")) {
-					selectedLight.ResetDiffuse();
-				}
-
-				ImGui::SameLine();
-
-				if (ImGui::Button("Reset Specular")) {
-					selectedLight.ResetSpecular();
-				}
-
-				ImGui::SameLine();
-
-				if (ImGui::Button("Reset Light")) {
-					selectedLight.ResetAll();
-				}
-			}
-		}
-
+	if (!selectedEntity) {
+		ImGui::Spacing();
+		ImGui::TextDisabled("Select an entity to edit its properties.");
 		ImGui::End();
+		return;
 	}
+
+	ImGui::TextDisabled("EDITING:");
+	ImGui::SameLine();
+	ImGui::Text("%s", selectedEntity->GetName().c_str());
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	float stepOffset = UIConsts::TRANSFORM_STEP;
+
+	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Indent(UIConsts::SECTION_INDENT);
+		ImGui::Spacing();
+
+		ImGui::DragFloat3("Position", selectedEntity->transform.PositionPointer(), stepOffset);
+		ImGui::DragFloat3("Rotation", selectedEntity->transform.RotationPointer(), stepOffset);
+		ImGui::DragFloat3("Scale", selectedEntity->transform.ScalePointer(), stepOffset);
+
+		ImGui::Spacing();
+
+		float halfW = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+		if (ImGui::Button("Reset Position", ImVec2(halfW, 0))) {
+			selectedEntity->transform.ResetPosition();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reset Rotation", ImVec2(halfW, 0))) {
+			selectedEntity->transform.ResetRotation();
+		}
+
+		if (ImGui::Button("Reset Scale", ImVec2(halfW, 0))) {
+
+			selectedEntity->transform.ResetScale();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reset All##Transform", ImVec2(halfW, 0))) {
+
+			selectedEntity->transform.ResetAll();
+		}
+
+		ImGui::Spacing();
+		ImGui::Unindent(UIConsts::SECTION_INDENT);
+	}
+
+	if (selectedEntity->HasMaterial()) {
+		if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::Indent(UIConsts::SECTION_INDENT);
+			ImGui::Spacing();
+
+			ImGui::ColorEdit4("Color", selectedEntity->material.ColorPointer());
+
+			ImGui::Spacing();
+			ImGui::Unindent(UIConsts::SECTION_INDENT);
+		}
+	}
+
+	if (selectedEntity->HasLight()) {
+		if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::Indent(UIConsts::SECTION_INDENT);
+			ImGui::Spacing();
+
+			Light& selectedLight = selectedEntity->light;
+
+			ImGui::DragFloat3("Ambient", selectedLight.AmbientPointer(), UIConsts::LIGHT_COLOR_STEP, 0.0f, 1.0f);
+			ImGui::DragFloat3("Diffuse", selectedLight.DiffusePointer(), UIConsts::LIGHT_COLOR_STEP, 0.0f, 1.0f);
+			ImGui::DragFloat3("Specular", selectedLight.SpecularPointer(), UIConsts::LIGHT_COLOR_STEP, 0.0f, 1.0f);
+
+			if (selectedLight.GetLightType() == LightType::Point || selectedLight.GetLightType() == LightType::Spot) {
+				ImGui::Spacing();
+				ImGui::TextDisabled("ATTENUATION");
+				ImGui::DragFloat("Constant", selectedLight.ConstantPointer(), UIConsts::ATTENUATION_CONSTANT_STEP, 0.0f, 10.0f);
+				ImGui::DragFloat("Linear", selectedLight.LinearPointer(), UIConsts::ATTENUATION_LINEAR_STEP, 0.0f, 1.0f);
+				ImGui::DragFloat("Quadratic", selectedLight.QuadraticPointer(), UIConsts::ATTENUATION_QUAD_STEP, 0.0f, 1.0f);
+			}
+
+			if (selectedLight.GetLightType() == LightType::Spot) {
+				ImGui::Spacing();
+				ImGui::TextDisabled("CONE");
+				ImGui::DragFloat("Cut Off", selectedLight.CutOffAnglePointer(), UIConsts::CONE_ANGLE_STEP, 0.0f, 360.0f);
+				ImGui::DragFloat("Outer Cut Off", selectedLight.OuterCutOffAnglePointer(), UIConsts::CONE_ANGLE_STEP, 0.0f, 360.0f);
+			}
+
+			ImGui::Spacing();
+
+			float halfW = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+
+			if (ImGui::Button("Reset Ambient", ImVec2(halfW, 0))) {
+				selectedLight.ResetAmbient();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset Diffuse", ImVec2(halfW, 0))) {
+				selectedLight.ResetDiffuse();
+			}
+
+			if (ImGui::Button("Reset Specular", ImVec2(halfW, 0))) {
+				selectedLight.ResetSpecular();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset All##Light", ImVec2(halfW, 0))) {
+				selectedLight.ResetAll();
+			}
+
+			ImGui::Spacing();
+			ImGui::Unindent(UIConsts::SECTION_INDENT);
+		}
+	}
+
+	ImGui::End();
 }
 
 void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
@@ -344,15 +386,33 @@ void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
 
 	ImGui::Begin("Task Bar", nullptr, flags);
 
-	ImGui::Text("FPS: %.1f", fps);
-	ImGui::SameLine(0, 20);
+	if (fps >= UIConsts::FPS_GOOD_THRESHOLD) {
+		ImGui::TextColored(UIConsts::STATUS_GOOD, "FPS: %.0f", fps);
+	}
+	else if (fps >= UIConsts::FPS_OK_THRESHOLD) {
+		ImGui::TextColored(UIConsts::STATUS_WARNING, "FPS: %.0f", fps);
+	}
+	else {
+		ImGui::TextColored(UIConsts::STATUS_BAD, "FPS: %.0f", fps);
+	}
+
+	ImGui::SameLine(0, UIConsts::TASKBAR_SPACING);
+
+	ImGui::TextDisabled("|");
+	ImGui::SameLine(0, UIConsts::TASKBAR_SPACING);
 
 	ImGui::Text("FOV: %.1f", fov);
-	ImGui::SameLine(0, 20);
+	ImGui::SameLine(0, UIConsts::TASKBAR_SPACING);
 
-	ImGui::Text("Camera Active: %s", isRMBHeld ? "True" : "False");
+	ImGui::TextDisabled("|");
+	ImGui::SameLine(0, UIConsts::TASKBAR_SPACING);
 
-	ImGui::SameLine();
+	if (isRMBHeld) {
+		ImGui::TextColored(UIConsts::STATUS_GOOD, "Camera Active");
+	}
+	else {
+		ImGui::TextDisabled("Camera Inactive");
+	}
 
 	ImGui::End();
 }
@@ -360,11 +420,16 @@ void ApplicationUI::DrawTaskBar(float fps, float fov, bool isRMBHeld)
 void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 	if (ImGui::BeginPopup("LoadFilePopup")) {
 
-		if (ImGui::Button("Up")) {
+		ImGui::PushStyleColor(ImGuiCol_Button, UIConsts::SUBTLE_BUTTON);
+		if (ImGui::Button("<  Up", ImVec2(UIConsts::FILE_POPUP_UP_BTN_WIDTH, 0))) {
 			currentPath = currentPath.parent_path();
 		}
+		ImGui::PopStyleColor();
 
-		ImGui::SeparatorText(currentPath.string().c_str());
+		ImGui::Spacing();
+		ImGui::TextDisabled("%s", currentPath.string().c_str());
+		ImGui::Separator();
+		ImGui::Spacing();
 
 		for (const auto& entry : fs::directory_iterator(currentPath)) {
 
@@ -373,8 +438,8 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 
 			std::string entryName = entry.path().filename().string();
 			std::string displayEntryName = isDirectory
-				? "[D] " + entryName : isRegularFile
-				? "[F] " + entryName : "";
+				? "> " + entryName : isRegularFile
+				? "  " + entryName : "";
 
 			ImGuiSelectableFlags flags = ImGuiSelectableFlags_DontClosePopups;
 
@@ -414,6 +479,9 @@ void ApplicationUI::ChangeThemeDropdown() {
 	
 	ImGui::Begin("Editor");
 
+	ImGui::TextDisabled("APPEARANCE");
+	ImGui::Spacing();
+
 	std::string* themes = uiTheme.GetAvailableThemes();
 	Theme currentTheme = uiTheme.GetCurrentTheme();
 
@@ -426,14 +494,20 @@ void ApplicationUI::ChangeThemeDropdown() {
 				uiTheme.SetCurrentTheme(currentTheme);
 
 				switch (currentTheme) {
+					case Theme::Modern:
+						UITheme::ApplyModernStyle();
+						break;
 					case Theme::DarkMode:
 						ImGui::StyleColorsDark();
+						UITheme::ApplyModernShaping();
 						break;
 					case Theme::LightMode:
 						ImGui::StyleColorsLight();
+						UITheme::ApplyModernShaping();
 						break;
 					case Theme::ClassicMode:
 						ImGui::StyleColorsClassic();
+						UITheme::ApplyModernShaping();
 						break;
 				}
 			}
@@ -449,6 +523,9 @@ void ApplicationUI::ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix,
 	float cameraZoom, int bufferWidth, int bufferHeight, bool& applyLights) {
 
 	ImGui::Begin("Projection");
+
+	ImGui::TextDisabled("CAMERA");
+	ImGui::Spacing();
 
 	std::string* modes = uiProjectionMatrix.GetAvailableMatrixModes();
 	ProjectionMatrixMode currentMode = uiProjectionMatrix.GetCurrentProjectionMatrixMode();
