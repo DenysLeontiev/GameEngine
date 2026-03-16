@@ -171,7 +171,7 @@ private:
 		ThemeToString(Theme::ClassicMode)
 	};
 
-	Theme currentTheme;
+	Theme currentTheme = Theme::Modern;
 };
 
 #endif
