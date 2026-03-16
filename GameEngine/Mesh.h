@@ -44,6 +44,7 @@ public:
     vector<unsigned int> indices;
     vector<Texture>      textures;
     unsigned int VAO;
+    GLenum drawingType{ GL_TRIANGLES };
 
     // constructor
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
@@ -87,7 +88,7 @@ public:
 
         // draw mesh
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+        glDrawElements(drawingType, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         // always good practice to set everything back to defaults once configured.

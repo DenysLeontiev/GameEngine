@@ -319,6 +319,46 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 		}
 	}
 
+	if (selectedEntity->HasModel()) {
+		if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::Indent(UIConsts::SECTION_INDENT);
+			ImGui::Spacing();
+
+			std::unordered_map<std::string, GLenum> drawingTypesMap = {
+				{"TRIANGLES", GL_TRIANGLES},
+				{"TRIANGLE STRIP", GL_TRIANGLE_STRIP},
+				{"TRIANGLE FAN", GL_TRIANGLE_FAN},
+				{"LINES", GL_LINES},
+				{"LINE STRIP", GL_LINE_STRIP},
+				{"LINE LOOP", GL_LINE_LOOP},
+				{"POINTS", GL_POINTS},
+				{"PATCHES", GL_PATCHES}
+			};
+
+			GLenum currentDrawingType = selectedEntity->model.GetDrawingType();
+
+			ImGui::BeginChild("Drawing Types", ImVec2(200, 100), true);
+
+			for (const auto& [key, value] : drawingTypesMap) {
+
+				const bool isSelected = (currentDrawingType == value);
+
+				if (ImGui::Selectable(key.c_str(), isSelected)) {
+					selectedEntity->model.SetDrawingType(value);
+				}
+
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGui::EndChild();
+
+			ImGui::Spacing();
+			ImGui::Indent(UIConsts::SECTION_INDENT);
+		}
+	}
+
 	if (selectedEntity->HasLight()) {
 		if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
 			ImGui::Indent(UIConsts::SECTION_INDENT);

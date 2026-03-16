@@ -35,6 +35,7 @@ public:
     vector<Mesh>    meshes;
     string directory;
     bool gammaCorrection;
+    GLenum drawingType{ GL_POINTS };
 
     // constructor, expects a filepath to a 3D model.
     Model(bool gamma = false) : gammaCorrection(gamma) {}
@@ -49,6 +50,17 @@ public:
     bool AttachModel(string const& path) {
         bool isModelSuccessfullyLoaded = loadModel(path);
         return isModelSuccessfullyLoaded;
+    }
+
+    GLenum GetDrawingType() const {
+        return drawingType;
+    }
+
+    void SetDrawingType(GLenum type) {
+        drawingType = type;
+        for (auto& mesh : meshes) {
+            mesh.drawingType = type;
+        }
     }
 
 private:

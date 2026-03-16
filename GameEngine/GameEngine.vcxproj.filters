@@ -128,5 +128,8 @@
     <ClInclude Include="PathConsts.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="UIConsts.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
