@@ -16,7 +16,8 @@ public:
 	}
 
 	void AddEntity(Entity& entity) {
-		int id = GetNextId();
+
+		int id = objectNumerationTracker++;
 		entity.SetId(id);
 
 		string currentName = entity.GetName();
@@ -48,16 +49,12 @@ public:
 		selectedEntity = entity;
 	}
 
-	int GetNextId() const {
-		int currentSize = entities.size();
-		currentSize++;
-		return currentSize;
-	}
-
 private:
 	std::vector<Entity> entities;
 
 	Entity* selectedEntity = nullptr;
+
+	unsigned int objectNumerationTracker { 0 };
 };
 
 #endif 
