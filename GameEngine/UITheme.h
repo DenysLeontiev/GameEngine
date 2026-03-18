@@ -44,7 +44,7 @@ public:
 		}
 	}
 
-	static Theme StringToTheme(std::string theme) {
+	static Theme StringToTheme(const std::string& theme) {
 		if (theme == ThemeToString(Theme::Modern)) {
 			return Theme::Modern;
 		}

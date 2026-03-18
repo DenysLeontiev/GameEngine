@@ -82,7 +82,7 @@ public:
         return name;
     }
 
-    void SetName(string name) {
+    void SetName(const string& name) {
         this->name = name;
     }
 
@@ -138,7 +138,7 @@ public:
         }
     }
 
-    static Entity CreatePointLightEntity(const string& entityName = "Point Light", const string path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
+    static Entity CreatePointLightEntity(const string& entityName = "Point Light", const string& path = PathConsts::POINT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Point);
         Model lightModel;
 
@@ -165,7 +165,7 @@ public:
         return lightEntity;
     }
 
-    static Entity CreateSpotLightEntity(const string& entityName = "Spot Light", const string path = PathConsts::SPOT_LIGHT_VISUAL_PATH) {
+    static Entity CreateSpotLightEntity(const string& entityName = "Spot Light", const string& path = PathConsts::SPOT_LIGHT_VISUAL_PATH) {
         Light light(LightType::Spot);
         Model lightModel;
         bool isLoaded = lightModel.AttachModel(path);

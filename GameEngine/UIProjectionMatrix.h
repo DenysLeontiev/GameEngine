@@ -45,7 +45,7 @@ public:
 		}
 	}
 
-	static ProjectionMatrixMode StringToProjectionMode(std::string projection) {
+	static ProjectionMatrixMode StringToProjectionMode(const std::string& projection) {
 		if (projection == ProjectionModeToString(ProjectionMatrixMode::Orthogonal)) {
 			return ProjectionMatrixMode::Orthogonal;
 		} else if (projection == ProjectionModeToString(ProjectionMatrixMode::Perspective)) {

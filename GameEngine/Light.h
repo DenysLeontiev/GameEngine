@@ -80,7 +80,7 @@ public:
 		return position;
 	}
 
-	void SetPosition(glm::vec3 position) {
+	void SetPosition(const glm::vec3& position) {
 		this->position = position;
 	}
 
@@ -88,7 +88,7 @@ public:
 		return direction;
 	}
 
-	void SetDirection(glm::vec3 dir) {
+	void SetDirection(const glm::vec3& dir) {
 		direction = dir;
 	}
 
@@ -96,7 +96,7 @@ public:
 		return ambient;
 	}
 
-	void SetAmbient(glm::vec3 ambient) {
+	void SetAmbient(const glm::vec3& ambient) {
 		this->ambient = ambient;
 	}
 
@@ -104,7 +104,7 @@ public:
 		return diffuse;
 	}
 
-	void SetDiffuse(glm::vec3 diffuse) {
+	void SetDiffuse(const glm::vec3& diffuse) {
 		this->diffuse = diffuse;
 	}
 
@@ -112,7 +112,7 @@ public:
 		return specular;
 	}
 
-	void SetSpecular(glm::vec3 specular) {
+	void SetSpecular(const glm::vec3& specular) {
 		this->specular = specular;
 	}
 

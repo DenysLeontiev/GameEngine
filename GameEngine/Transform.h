@@ -31,7 +31,7 @@ public:
 		return rotation;
 	}
 
-	void SetRotation(glm::vec3 newRotation) {
+	void SetRotation(const glm::vec3& newRotation) {
 		rotation = newRotation;
 	}
 
@@ -39,11 +39,11 @@ public:
 		return scale;
 	}
 
-	void SetScale(glm::vec3 newScale) {
+	void SetScale(const glm::vec3& newScale) {
 		scale = newScale;
 	}
 
-	void SetInitialScale(glm::vec3 scale) {
+	void SetInitialScale(const glm::vec3& scale) {
 		initialScale = scale;
 	}
 

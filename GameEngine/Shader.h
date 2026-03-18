@@ -99,17 +99,17 @@ public:
 		glUniform1f(location, value);
 	}
 
-	void setVec3(const std::string& name, glm::vec3 vector) const {
+	void setVec3(const std::string& name, const glm::vec3& vector) const {
 		GLint location = getShaderUniformLocation(name);
 		glUniform3fv(location, 1, glm::value_ptr(vector));
 	}
 
-	void setVec4(const std::string& name, glm::vec4 vector) const {
+	void setVec4(const std::string& name, const glm::vec4& vector) const {
 		GLint location = getShaderUniformLocation(name);
 		glUniform4fv(location, 1, glm::value_ptr(vector));
 	}
 
-	void setMat4(const std::string& name, glm::mat4 matrix) const {
+	void setMat4(const std::string& name, const glm::mat4& matrix) const {
 		GLint location = getShaderUniformLocation(name);
 		// Correctly upload a 4x4 matrix to the uniform location
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -123,7 +123,7 @@ public:
 	}
 
 private:
-	void checkCompileErrors(unsigned int shader, std::string type) {
+	void checkCompileErrors(unsigned int shader, const std::string& type) {
 		int success;
 		char infoLog[1024];
 		if (type != "PROGRAM") {
