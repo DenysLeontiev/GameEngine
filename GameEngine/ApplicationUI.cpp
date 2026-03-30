@@ -9,6 +9,7 @@
 #include "Model.h"
 #include "PathConsts.h"
 #include "UIConsts.h"
+#include "DisplayConsts.h"
 
 namespace fs = std::filesystem;
 
@@ -324,22 +325,11 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 			ImGui::Indent(UIConsts::SECTION_INDENT);
 			ImGui::Spacing();
 
-			std::unordered_map<std::string, GLenum> drawingTypesMap = {
-				{"TRIANGLES", GL_TRIANGLES},
-				{"TRIANGLE STRIP", GL_TRIANGLE_STRIP},
-				{"TRIANGLE FAN", GL_TRIANGLE_FAN},
-				{"LINES", GL_LINES},
-				{"LINE STRIP", GL_LINE_STRIP},
-				{"LINE LOOP", GL_LINE_LOOP},
-				{"POINTS", GL_POINTS},
-				{"PATCHES", GL_PATCHES}
-			};
-
 			GLenum currentDrawingType = selectedEntity->model.GetDrawingType();
 
 			ImGui::BeginChild("Drawing Types", ImVec2(200, 100), true);
 
-			for (const auto& [key, value] : drawingTypesMap) {
+			for (const auto& [key, value] : DisplayConsts::DRAWING_TYPES_MAP) {
 
 				const bool isSelected = (currentDrawingType == value);
 

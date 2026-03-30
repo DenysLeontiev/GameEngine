@@ -131,5 +131,8 @@
     <ClInclude Include="UIConsts.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="DisplayConsts.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
