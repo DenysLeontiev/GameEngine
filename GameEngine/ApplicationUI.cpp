@@ -319,7 +319,7 @@ void ApplicationUI::DrawEditorWindow(Hierarchy& hierarchy) {
 		}
 	}
 
-	if (selectedEntity->HasModel()) {
+	if (selectedEntity->HasModel() && !selectedEntity->IsLight()) {
 		if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
 			ImGui::Indent(UIConsts::SECTION_INDENT);
 			ImGui::Spacing();
