@@ -161,6 +161,7 @@
     <ClInclude Include="..\External\imgui\imstb_textedit.h" />
     <ClInclude Include="..\External\imgui\imstb_truetype.h" />
     <ClInclude Include="ApplicationUI.h" />
+    <ClInclude Include="AudioPlayer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DisplayConsts.h" />
     <ClInclude Include="PathConsts.h" />

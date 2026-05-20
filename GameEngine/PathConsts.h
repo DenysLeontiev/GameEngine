@@ -15,6 +15,8 @@ public:
 
 	static inline const std::string MODEL_VERTEX_SHADER_PATH = "assets/shaders/model/model.vert";
 	static inline const std::string MODEL_FRAGMENT_SHADER_PATH = "assets/shaders/model/model.frag";
+
+	static inline const std::string MUSIC_MINECRAFT_PATH = "assets/music/minecraft";
 };
 
 #endif

@@ -11,6 +11,7 @@
 #include "Hierarchy.h"
 #include "UITheme.h"
 #include "UIProjectionMatrix.h"
+#include "AudioPlayer.h"
 
 namespace fs = std::filesystem;
 
@@ -30,7 +31,7 @@ public:
 	void DrawHierarchyTaskBar(Hierarchy& hierarchy);
 	void DrawEditorWindow(Hierarchy& hierarchy);
 	void LoadFilePopup(Hierarchy& hierarchy);
-	void ChangeThemeDropdown();
+	void ComoditiesWindow();
 	void ChangeProjectionMatrixDropdown(glm::mat4& projectionMatrix, float cameraZoom, int bufferWidth, int bufferHeight, bool& applyLights);
 	void DrawTaskBar(float fps, float fov, bool isRMBHeld);
 	void ShutdownImGui();
@@ -39,6 +40,7 @@ private:
 	float m_viewportWidth;
 	float m_viewportHeight;
 
+	AudioPlayer audioPlayer;
 	UITheme uiTheme;
 	UIProjectionMatrix uiProjectionMatrix;
 

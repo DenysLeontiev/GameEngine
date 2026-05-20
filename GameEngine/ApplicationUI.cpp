@@ -10,9 +10,9 @@
 #include "PathConsts.h"
 #include "UIConsts.h"
 #include "DisplayConsts.h"
+#include "AudioPlayer.h"
 
 namespace fs = std::filesystem;
-
 // External function declared in main.cpp
 extern void rescaleFramebuffer(float width, float height);
 
@@ -168,7 +168,7 @@ void ApplicationUI::DrawHierarchy(Hierarchy& hierarchy)
 	ImGui::Spacing();
 	DrawHierarchyTaskBar(hierarchy);
 
-	ChangeThemeDropdown();
+	ComoditiesWindow();
 	ImGui::End();
 }
 
@@ -505,7 +505,7 @@ void ApplicationUI::LoadFilePopup(Hierarchy& hierarchy) {
 	}
 }
 
-void ApplicationUI::ChangeThemeDropdown() {
+void ApplicationUI::ComoditiesWindow() {
 	
 	ImGui::Begin("Editor");
 
@@ -544,6 +544,102 @@ void ApplicationUI::ChangeThemeDropdown() {
 		}
 
 		ImGui::EndCombo();
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	ImGui::TextDisabled("MUSIC");
+	ImGui::Spacing();
+
+	std::vector<fs::path> soundTracks = AudioPlayer::EnumerateWavFilesInDirectory(PathConsts::MUSIC_MINECRAFT_PATH);
+
+	std::string currentTrackName = "None";
+
+	if (!audioPlayer.GetCurrentTrackPath().empty()) {
+
+		currentTrackName =
+			fs::path(audioPlayer.GetCurrentTrackPath())
+			.filename()
+			.string();
+	}
+
+	if (ImGui::BeginCombo(
+		"Track",
+		currentTrackName.c_str()
+	)) {
+
+		for (size_t i = 0; i < soundTracks.size(); i++) {
+
+			std::string fileName =
+				soundTracks[i].filename().string();
+
+			bool isSelected =
+				audioPlayer.GetCurrentTrackPath() ==
+				soundTracks[i].wstring();
+
+			if (ImGui::Selectable(
+				fileName.c_str(),
+				isSelected
+			)) {
+
+				audioPlayer.SetCurrentTrack(
+					soundTracks[i].wstring()
+				);
+
+				audioPlayer.PlayCurrentSoundTrack();
+			}
+
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+
+		ImGui::EndCombo();
+	}
+
+	ImGui::Spacing();
+
+	float buttonWidth = 90.0f;
+
+	if (ImGui::Button("Play", ImVec2(buttonWidth, 0))) {
+		audioPlayer.PlayCurrentSoundTrack();
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Pause", ImVec2(buttonWidth, 0))) {
+		audioPlayer.PauseCurrentSoundTrack();
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Resume", ImVec2(buttonWidth, 0))) {
+		audioPlayer.ResumeCurrentSoundTrack();
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Stop", ImVec2(buttonWidth, 0))) {
+		audioPlayer.StopCurrentSoundTrack();
+	}
+
+	ImGui::Spacing();
+
+	if (!audioPlayer.GetCurrentTrackPath().empty()) {
+
+		ImGui::TextDisabled("Now playing:");
+
+		ImGui::SameLine();
+
+		ImGui::Text(
+			"%s",
+			fs::path(audioPlayer.GetCurrentTrackPath())
+			.filename()
+			.string()
+			.c_str()
+		);
 	}
 
 	ImGui::End();

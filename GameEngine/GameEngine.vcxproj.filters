@@ -134,5 +134,8 @@
     <ClInclude Include="DisplayConsts.h">
       <Filter>Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="AudioPlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
